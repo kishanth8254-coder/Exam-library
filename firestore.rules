@@ -1,0 +1,127 @@
+rules_version = '2';
+services {
+  match /databases/{database}/documents {
+    
+    // Global Catch-all safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Global Helper Functions ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isBootstrappedAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "kishanth8254@gmail.com" && 
+        request.auth.token.email_verified == true
+      );
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (
+        isSignedIn() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Specific Collection Rules ---
+
+    // 1. Users Collection
+    match /users/{userId} {
+      
+      function isValidUser(data) {
+        return data.id is string && data.id.size() <= 128 &&
+               data.name is string && data.name.size() <= 200 &&
+               data.email is string && data.email.size() <= 200 &&
+               data.role is string && (data.role == "student" || data.role == "admin");
+      }
+
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      
+      allow create: if isSignedIn() && 
+                    request.auth.uid == userId && 
+                    isValidId(userId) && 
+                    isValidUser(incoming()) &&
+                    // Self-registered users can only register as student, unless bootstrapped admin
+                    (incoming().role == "student" || isBootstrappedAdmin());
+                    
+      allow update: if isSignedIn() && 
+                    (request.auth.uid == userId || isAdmin()) && 
+                    isValidId(userId) && 
+                    isValidUser(incoming()) &&
+                    // Ensure normal user cannot escalate their role to admin
+                    (incoming().role == existing().role || isAdmin());
+                    
+      allow delete: if isAdmin();
+    }
+
+    // 2. Books Collection
+    match /books/{bookId} {
+      
+      function isValidBook(data) {
+        return data.id is string && data.id.size() <= 128 &&
+               data.title is string && data.title.size() <= 200 &&
+               data.grade is string && data.grade.size() <= 10 &&
+               data.subject is string && data.subject.size() <= 100 &&
+               data.pdfUrl is string && data.pdfUrl.size() <= 2000;
+      }
+
+      allow read, list: if true;
+      
+      allow create: if isAdmin() && 
+                    isValidId(bookId) && 
+                    isValidBook(incoming()) && 
+                    incoming().createdAt == request.time;
+                    
+      allow update: if isAdmin() && 
+                    isValidId(bookId) && 
+                    isValidBook(incoming()) && 
+                    incoming().createdAt == existing().createdAt;
+                    
+      allow delete: if isAdmin();
+    }
+
+    // 3. Past Papers Collection
+    match /pastPapers/{paperId} {
+      
+      function isValidPastPaper(data) {
+        return data.id is string && data.id.size() <= 128 &&
+               data.year is string && data.year.size() <= 10 &&
+               data.examType is string && (data.examType == "O/L" || data.examType == "A/L") &&
+               data.subject is string && data.subject.size() <= 100 &&
+               data.pdfUrl is string && data.pdfUrl.size() <= 2000;
+      }
+
+      allow read, list: if true;
+      
+      allow create: if isAdmin() && 
+                    isValidId(paperId) && 
+                    isValidPastPaper(incoming()) && 
+                    incoming().createdAt == request.time;
+                    
+      allow update: if isAdmin() && 
+                    isValidId(paperId) && 
+                    isValidPastPaper(incoming()) && 
+                    incoming().createdAt == existing().createdAt;
+                    
+      allow delete: if isAdmin();
+    }
+  }
+}

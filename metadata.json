@@ -1,0 +1,6 @@
+{
+  "name": "Exam Library",
+  "description": "Sri Lankan Tamil medium exam library containing school textbooks, past papers, and educational resources.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
