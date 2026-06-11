@@ -250,6 +250,219 @@ const SUBJECT_MAP: Record<string, string> = {
   acc_subject: 'Accounting'
 };
 
+// Advanced translation mapping arrays to dynamically resolve raw Tamil, raw English, or Key values
+const SUBJECTS_DATABASE_MAP = [
+  {
+    key: 'tamil_subject',
+    en: 'Tamil',
+    ta: 'தமிழ் மொழியும் இலக்கியமும்',
+    matches: ['tamil', 'tamil_subject', 'தமிழ் மொழியும் இலக்கியமும்', 'தமிழ்', 'tamil subject']
+  },
+  {
+    key: 'maths_subject',
+    en: 'Mathematics',
+    ta: 'கணிதம்',
+    matches: ['maths', 'mathematics', 'maths_subject', 'கணிதம்', 'math', 'math subject']
+  },
+  {
+    key: 'science_subject',
+    en: 'Science',
+    ta: 'விஞ்ஞானம்',
+    matches: ['science', 'science_subject', 'விஞ்ஞானம்', 'science subject']
+  },
+  {
+    key: 'history_subject',
+    en: 'History',
+    ta: 'வரலாறு',
+    matches: ['history', 'history_subject', 'வரலாறு']
+  },
+  {
+    key: 'geo_subject',
+    en: 'Geography',
+    ta: 'புவியியல்',
+    matches: ['geography', 'geo_subject', 'புவியியல்', 'geo']
+  },
+  {
+    key: 'ict_subject',
+    en: 'ICT',
+    ta: 'தகவல் தொழில்நுட்பம் (ICT)',
+    matches: ['ict', 'ict_subject', 'தகவல் தொழில்நுட்பம் (ict)', 'தகவல் தொழில்நுட்பம்', 'தொடர்பாடல் தொழில்நுட்பம்', 'தொடர்பாடல் தொழினுட்பம்', 'ict subject', 'information and communication technology']
+  },
+  {
+    key: 'comb_maths',
+    en: 'Combined Maths',
+    ta: 'இணைந்த கணிதம்',
+    matches: ['combined maths', 'combined mathematics', 'comb_maths', 'இணைந்த கணிதம்']
+  },
+  {
+    key: 'physics_subject',
+    en: 'Physics',
+    ta: 'பௌதிகவியல்',
+    matches: ['physics', 'physics_subject', 'பௌதிகவியல்']
+  },
+  {
+    key: 'chem_subject',
+    en: 'Chemistry',
+    ta: 'இரசாயனவியல்',
+    matches: ['chemistry', 'chem', 'chem_subject', 'இரசாயனவியல்']
+  },
+  {
+    key: 'bio_subject',
+    en: 'Biology',
+    ta: 'உயிரியல்',
+    matches: ['biology', 'bio', 'bio_subject', 'உயிரியல்']
+  },
+  {
+    key: 'commerce_subject',
+    en: 'Commerce',
+    ta: 'வர்த்தகம்',
+    matches: ['commerce', 'commerce_subject', 'வர்த்தகம்']
+  },
+  {
+    key: 'econ_subject',
+    en: 'Economics',
+    ta: 'பொருளியல்',
+    matches: ['economics', 'econ', 'econ_subject', 'பொருளியல்']
+  },
+  {
+    key: 'acc_subject',
+    en: 'Accounting',
+    ta: 'கணக்கியல்',
+    matches: ['accounting', 'accounts', 'acc_subject', 'கணக்கியல்']
+  }
+];
+
+const GRADES_DATABASE_MAP = [
+  { key: 'Grade 6', ta: 'தரம் 6', en: 'Grade 6', matches: ['தரம் 6', 'grade 6', '6'] },
+  { key: 'Grade 7', ta: 'தரம் 7', en: 'Grade 7', matches: ['தரம் 7', 'grade 7', '7'] },
+  { key: 'Grade 8', ta: 'தரம் 8', en: 'Grade 8', matches: ['தரம் 8', 'grade 8', '8'] },
+  { key: 'Grade 9', ta: 'தரம் 9', en: 'Grade 9', matches: ['தரம் 9', 'grade 9', '9'] },
+  { key: 'Grade 10', ta: 'தரம் 10', en: 'Grade 10', matches: ['தரம் 10', 'grade 10', '10'] },
+  { key: 'Grade 11', ta: 'தரம் 11 (O/L)', en: 'Grade 11 (O/L)', matches: ['தரம் 11', 'தரம் 11 (o/l)', 'grade 11', 'grade 11 (o/l)', '11', 'o/l', 'ol'] },
+  { key: 'Grade 12', ta: 'தரம் 12', en: 'Grade 12', matches: ['தரம் 12', 'grade 12', '12'] },
+  { key: 'Grade 13', ta: 'தரம் 13 (A/L)', en: 'Grade 13 (A/L)', matches: ['தரம் 13', 'தரம் 13 (a/l)', 'grade 13', 'grade 13 (a/l)', '13', 'a/l', 'al'] },
+];
+
+function getSubjectDisplayName(subjectInput: string, currentLang: 'ta' | 'en'): string {
+  if (!subjectInput) return '';
+  const searchStr = subjectInput.trim().toLowerCase();
+  
+  const match = SUBJECTS_DATABASE_MAP.find(item => 
+    item.key.toLowerCase() === searchStr || 
+    item.matches.some(m => m.toLowerCase() === searchStr) ||
+    item.en.toLowerCase() === searchStr ||
+    item.ta.toLowerCase() === searchStr
+  );
+
+  if (match) {
+    return currentLang === 'ta' ? match.ta : match.en;
+  }
+  
+  if (currentLang === 'ta') {
+    return TAMIL_MAP[subjectInput] || SUBJECT_MAP[subjectInput] || subjectInput;
+  } else {
+    return SUBJECT_MAP[subjectInput] || subjectInput;
+  }
+}
+
+function getGradeDisplayName(gradeInput: string, currentLang: 'ta' | 'en'): string {
+  if (!gradeInput) return '';
+  const searchStr = gradeInput.trim().toLowerCase();
+  
+  const match = GRADES_DATABASE_MAP.find(item => 
+    item.key.toLowerCase() === searchStr || 
+    item.matches.some(m => m.toLowerCase() === searchStr) ||
+    item.ta.toLowerCase() === searchStr ||
+    item.en.toLowerCase() === searchStr
+  );
+
+  if (match) {
+    return currentLang === 'ta' ? match.ta : match.en;
+  }
+  
+  if (currentLang === 'ta') {
+    return TAMIL_MAP[gradeInput] || gradeInput;
+  } else {
+    return gradeInput;
+  }
+}
+
+function translateTitleDynamically(titleStr: string, targetLang: 'ta' | 'en'): string {
+  if (!titleStr) return '';
+  
+  let result = titleStr;
+  
+  if (targetLang === 'en') {
+    // Replace Tamil terms with English equivalents
+    const replacements: [RegExp, string][] = [
+      [/விஞ்ஞானம்/g, 'Science'],
+      [/கணிதம்/g, 'Mathematics'],
+      [/தமிழ் மொழியும் இலக்கியமும்/g, 'Tamil Language & Literature'],
+      [/தமிழ் மொழி/g, 'Tamil Language'],
+      [/தமிழ்/g, 'Tamil'],
+      [/தகவல் தொழில்நுட்பம்/g, 'ICT'],
+      [/தொடர்பாடல் தொழில்நுட்பம்/g, 'Communication Technology'],
+      [/தொடர்பாடல் தொழினுட்பம்/g, 'Communication Technology'],
+      [/பௌதிகவியல்/g, 'Physics'],
+      [/இரசாயனவியல்/g, 'Chemistry'],
+      [/உயிரியல்/g, 'Biology'],
+      [/வரலாறு/g, 'History'],
+      [/புவியியல்/g, 'Geography'],
+      [/வர்த்தகம்/g, 'Commerce'],
+      [/பொருளியல்/g, 'Economics'],
+      [/கணக்கியல்/g, 'Accounting'],
+      [/இணைந்த கணிதம்/g, 'Combined Mathematics'],
+      [/தரம்\s*(\d+)/g, 'Grade $1'],
+      [/முதலாம் பாகம்/gi, 'Part I'],
+      [/இரண்டாம் பாகம்/gi, 'Part II'],
+      [/அலகு\s*([\d,\s+]+)/gi, 'Unit $1'],
+      [/மெய்யெண்கள்/g, 'Real Numbers'],
+      [/கலவட்டங்கள்/g, 'Life Cycles'],
+      [/அளவீடு/g, 'Measurement'],
+      [/வாயுவகை/g, 'Gaseous State'],
+      [/மெய்யெண்கள் தொடர்பான அறிமுகம்/g, 'Introduction to Real Numbers'],
+      [/உயிரினங்களின் வாழ்க்கைக் வட்டம்/g, 'Life cycles of organisms'],
+      [/அளவீட்டு உபகரணங்கள் மற்றும் வழுக்கள்/g, 'Measuring instruments and errors'],
+      [/வாயு அலகு அடிப்படைக் கோட்பாடுகள்/g, 'Basic concepts of gases'],
+    ];
+    
+    for (const [regex, replacement] of replacements) {
+      result = result.replace(regex, replacement);
+    }
+  } else {
+    // Replace English terms with Tamil equivalents
+    const replacements: [RegExp, string][] = [
+      [/Combined Mathematics/gi, 'இணைந்த கணிதம்'],
+      [/Combined Maths/gi, 'இணைந்த கணிதம்'],
+      [/Mathematics/gi, 'கணிதம்'],
+      [/Maths/gi, 'கணிதம்'],
+      [/Science/gi, 'விஞ்ஞானம்'],
+      [/Tamil Language & Literature/gi, 'தமிழ் மொழியும் இலக்கியமும்'],
+      [/Tamil/gi, 'தமிழ்'],
+      [/Communication Technology/gi, 'தொடர்பாடல் தொழில்நுட்பம்'],
+      [/ICT/gi, 'தகவல் தொழில்நுட்பம் (ICT)'],
+      [/Physics/gi, 'பௌதிகவியல்'],
+      [/Chemistry/gi, 'இரசாயனவியல்'],
+      [/Biology/gi, 'உயிரியல்'],
+      [/History/gi, 'வரலாறு'],
+      [/Geography/gi, 'புவியியல்'],
+      [/Commerce/gi, 'வர்த்தகம்'],
+      [/Economics/gi, 'பொருளியல்'],
+      [/Accounting/gi, 'கணக்கியல்'],
+      [/Grade\s*(\d+)/gi, 'தரம் $1'],
+      [/Part\s*I\b/gi, 'முதலாம் பாகம்'],
+      [/Part\s*II\b/gi, 'இரண்டாம் பாகம்'],
+      [/Unit\s*([\d,\s+]+)/gi, 'அலகு $1'],
+    ];
+    
+    for (const [regex, replacement] of replacements) {
+      result = result.replace(regex, replacement);
+    }
+  }
+  
+  return result;
+}
+
 // Load Dynamic Data from Firestore seamlessly
 async function loadData() {
   testConnection();
@@ -337,34 +550,34 @@ function renderApp() {
   const filteredBooks = books.filter((b) => {
     const matchesGrade = selectedGrade === 'All' || b.grade === selectedGrade;
     const matchesSubject = selectedSubject === 'All' || b.subject === selectedSubject;
-    const matchesSearch = !searchKeyword.trim() || b.title.toLowerCase().includes(searchKeyword.toLowerCase()) || (TAMIL_MAP[b.subject] || '').toLowerCase().includes(searchKeyword.toLowerCase());
+    const matchesSearch = !searchKeyword.trim() || b.title.toLowerCase().includes(searchKeyword.toLowerCase()) || (TAMIL_MAP[b.subject] || '').toLowerCase().includes(searchKeyword.toLowerCase()) || (SUBJECT_MAP[b.subject] || '').toLowerCase().includes(searchKeyword.toLowerCase());
     return matchesGrade && matchesSubject && matchesSearch;
   });
 
   const filteredPapers = papers.filter((p) => {
     const matchesType = selectedExamType === 'All' || p.examType === selectedExamType;
     const matchesSubject = selectedSubject === 'All' || p.subject === selectedSubject;
-    const matchesSearch = !searchKeyword.trim() || p.year.includes(searchKeyword) || (TAMIL_MAP[p.subject] || '').toLowerCase().includes(searchKeyword.toLowerCase());
+    const matchesSearch = !searchKeyword.trim() || p.year.includes(searchKeyword) || (TAMIL_MAP[p.subject] || '').toLowerCase().includes(searchKeyword.toLowerCase()) || (SUBJECT_MAP[p.subject] || '').toLowerCase().includes(searchKeyword.toLowerCase());
     return matchesType && matchesSubject && matchesSearch;
   });
 
   const filteredVideos = videos.filter((v) => {
     const matchesGrade = selectedGrade === 'All' || v.grade === selectedGrade;
     const matchesSubject = selectedSubject === 'All' || v.subject === selectedSubject;
-    const matchesSearch = !searchKeyword.trim() || v.title.toLowerCase().includes(searchKeyword.toLowerCase()) || v.lessonName.toLowerCase().includes(searchKeyword.toLowerCase()) || (TAMIL_MAP[v.subject] || '').toLowerCase().includes(searchKeyword.toLowerCase());
+    const matchesSearch = !searchKeyword.trim() || v.title.toLowerCase().includes(searchKeyword.toLowerCase()) || v.lessonName.toLowerCase().includes(searchKeyword.toLowerCase()) || (TAMIL_MAP[v.subject] || '').toLowerCase().includes(searchKeyword.toLowerCase()) || (SUBJECT_MAP[v.subject] || '').toLowerCase().includes(searchKeyword.toLowerCase());
     return matchesGrade && matchesSubject && matchesSearch;
   });
 
   // Render full HTML markup
   rootElement.innerHTML = `
-    <div class="min-h-screen w-full bg-[#050811] text-slate-800 dark:text-slate-100 flex flex-col items-center justify-center font-sans p-0 sm:p-4 overflow-x-hidden relative">
+    <div class="h-[100dvh] sm:min-h-screen w-full bg-[#050811] text-slate-800 dark:text-slate-100 flex flex-col items-center justify-center font-sans p-0 sm:p-4 overflow-hidden relative">
       
       <!-- Ambient Backlights -->
       <div class="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-neon-purple/10 blur-[130px] pointer-events-none -z-10 hidden md:block"></div>
       <div class="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-neon-cyan/10 blur-[130px] pointer-events-none -z-10 hidden md:block"></div>
 
       <!-- App Container (Constrained max-width on computers, full-bleed immersive screen on real mobile phones) -->
-      <div class="w-full max-w-md bg-white dark:bg-[#070b14] sm:rounded-3xl sm:border sm:border-slate-150 sm:dark:border-[#1a2333] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col h-screen sm:h-[840px] relative overflow-hidden shrink-0 z-10 transition-colors duration-300">
+      <div class="w-full max-w-md bg-white dark:bg-[#070b14] sm:rounded-3xl sm:border sm:border-slate-150 sm:dark:border-[#1a2333] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col h-[100dvh] sm:h-[840px] relative overflow-hidden shrink-0 z-10 transition-colors duration-300">
         
         <!-- COMPACT HEADER -->
         <div class="bg-slate-50 dark:bg-[#111827] px-4 py-3.5 flex justify-between items-center border-b border-slate-200 dark:border-slate-900 shadow-sm shrink-0 transition-colors duration-300">
@@ -487,7 +700,7 @@ function renderApp() {
                 <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-neon-pink/10 transition flex items-start space-x-3">
                   <div class="p-2.5 bg-pink-100 dark:bg-neon-pink/10 text-pink-600 dark:text-neon-pink rounded-xl shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 011.414 0 3.42 3.42 0 001.946.806 3.42 3.42 0 010 1.946 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00.806 1.946 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946.806 3.42 3.42 0 010-1.946 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-1.414 3.42 3.42 0 00.806-1.946 3.42 3.42 0 010-1.414z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 011.414 0 3.42 3.42 0 001.946.806 3.42 3.42 0 010 1.946 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00.806 1.946 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946.806 3.42 3.42 0 010-1.946 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-1.414z"></path>
                     </svg>
                   </div>
                   <div>
@@ -552,7 +765,7 @@ function renderApp() {
                     <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterByGrade}</label>
                     <select id="book-grade-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
                       <option value="All" ${selectedGrade === 'All' ? 'selected' : ''}>${t.allGrades}</option>
-                      ${GRADES.map(g => `<option value="${g}" ${selectedGrade === g ? 'selected' : ''}>${TAMIL_MAP[g] || g}</option>`).join('')}
+                      ${GRADES.map(g => `<option value="${g}" ${selectedGrade === g ? 'selected' : ''}>${lang === 'ta' ? (TAMIL_MAP[g] || g) : g}</option>`).join('')}
                     </select>
                   </div>
 
@@ -561,7 +774,7 @@ function renderApp() {
                     <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterBySubject}</label>
                     <select id="book-subject-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
                       <option value="All" ${selectedSubject === 'All' ? 'selected' : ''}>${t.allSubjects}</option>
-                      ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}" ${selectedSubject === subKey ? 'selected' : ''}>${TAMIL_MAP[subKey] || SUBJECT_MAP[subKey]}</option>`).join('')}
+                      ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}" ${selectedSubject === subKey ? 'selected' : ''}>${getSubjectDisplayName(subKey, lang)}</option>`).join('')}
                     </select>
                   </div>
                 </div>
@@ -579,23 +792,23 @@ function renderApp() {
                     <div class="w-11 h-14 bg-gradient-to-br from-indigo-600 via-blue-500 to-indigo-700 text-white rounded-lg p-1.5 flex flex-col justify-between shrink-0 select-none shadow">
                       <span class="text-[7px] font-black uppercase text-cyan-200 tracking-wider">NIE</span>
                       <div class="w-full h-0.5 bg-white/20"></div>
-                      <span class="text-[9px] font-black tracking-tighter truncate leading-tight">${TAMIL_MAP[b.grade] || b.grade}</span>
+                      <span class="text-[7.5px] font-black tracking-tighter leading-none">${getGradeDisplayName(b.grade, lang)}</span>
                     </div>
 
                     <div class="flex-grow min-w-0 flex flex-col justify-between h-14">
                       <div>
-                        <h4 class="font-extrabold text-[11px] text-slate-950 dark:text-white truncate leading-snug">${b.title}</h4>
+                        <h4 class="font-extrabold text-[11px] text-slate-950 dark:text-white truncate leading-snug">${translateTitleDynamically(b.title, lang)}</h4>
                         <div class="flex flex-wrap gap-1 mt-1">
                           <span class="bg-blue-100 text-blue-800 dark:bg-neon-purple/10 dark:text-neon-purple text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded-md leading-none uppercase">
-                            ${TAMIL_MAP[b.grade] || b.grade}
+                            ${getGradeDisplayName(b.grade, lang)}
                           </span>
                           <span class="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-350 text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded-md leading-none uppercase truncate max-w-[100px]">
-                            ${TAMIL_MAP[b.subject] || SUBJECT_MAP[b.subject] || b.subject}
+                            ${getSubjectDisplayName(b.subject, lang)}
                           </span>
                         </div>
                       </div>
 
-                      <button class="pdf-trigger-btn flex items-center space-x-1 text-blue-600 dark:text-neon-cyan hover:underline text-[9px] font-black self-start" data-url="${b.pdfUrl}" data-title="${b.title}">
+                      <button class="pdf-trigger-btn flex items-center space-x-1 text-blue-600 dark:text-neon-cyan hover:underline text-[9px] font-black self-start" data-url="${b.pdfUrl}" data-title="${translateTitleDynamically(b.title, lang)}">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -633,8 +846,8 @@ function renderApp() {
                     <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterByExamType}</label>
                     <select id="paper-examtype-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
                       <option value="All" ${selectedExamType === 'All' ? 'selected' : ''}>${t.allExamTypes}</option>
-                      <option value="O/L" ${selectedExamType === 'O/L' ? 'selected' : ''}>${TAMIL_MAP['O/L'] || 'O/L'}</option>
-                      <option value="A/L" ${selectedExamType === 'A/L' ? 'selected' : ''}>${TAMIL_MAP['A/L'] || 'A/L'}</option>
+                      <option value="O/L" ${selectedExamType === 'O/L' ? 'selected' : ''}>${lang === 'ta' ? (TAMIL_MAP['O/L'] || 'O/L') : 'O/L'}</option>
+                      <option value="A/L" ${selectedExamType === 'A/L' ? 'selected' : ''}>${lang === 'ta' ? (TAMIL_MAP['A/L'] || 'A/L') : 'A/L'}</option>
                     </select>
                   </div>
 
@@ -643,7 +856,7 @@ function renderApp() {
                     <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterBySubject}</label>
                     <select id="paper-subject-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
                       <option value="All" ${selectedSubject === 'All' ? 'selected' : ''}>${t.allSubjects}</option>
-                      ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}" ${selectedSubject === subKey ? 'selected' : ''}>${TAMIL_MAP[subKey] || SUBJECT_MAP[subKey]}</option>`).join('')}
+                      ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}" ${selectedSubject === subKey ? 'selected' : ''}>${getSubjectDisplayName(subKey, lang)}</option>`).join('')}
                     </select>
                   </div>
                 </div>
@@ -667,19 +880,19 @@ function renderApp() {
                     <div class="flex-grow min-w-0 flex flex-col justify-between h-14">
                       <div>
                         <h4 class="font-extrabold text-[11px] text-slate-950 dark:text-white truncate leading-snug">
-                          ${p.year} - ${TAMIL_MAP[p.subject] || SUBJECT_MAP[p.subject]}
+                          ${p.year} - ${getSubjectDisplayName(p.subject, lang)}
                         </h4>
                         <div class="flex flex-wrap gap-1 mt-1">
                           <span class="bg-pink-100 text-pink-800 dark:bg-neon-pink/10 dark:text-neon-pink text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded-md leading-none uppercase">
                             ${p.examType}
                           </span>
                           <span class="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-350 text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded-md leading-none uppercase truncate max-w-[100px]">
-                            ${TAMIL_MAP[p.subject] || SUBJECT_MAP[p.subject] || p.subject}
+                            ${getSubjectDisplayName(p.subject, lang)}
                           </span>
                         </div>
                       </div>
 
-                      <button class="pdf-trigger-btn flex items-center space-x-1 text-blue-600 dark:text-neon-cyan hover:underline text-[9px] font-black self-start" data-url="${p.pdfUrl}" data-title="${p.year} ${TAMIL_MAP[p.subject] || SUBJECT_MAP[p.subject]}">
+                      <button class="pdf-trigger-btn flex items-center space-x-1 text-blue-600 dark:text-neon-cyan hover:underline text-[9px] font-black self-start" data-url="${p.pdfUrl}" data-title="${p.year} ${getSubjectDisplayName(p.subject, lang)}">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                         </svg>
@@ -714,7 +927,7 @@ function renderApp() {
                   <span class="inline-block bg-blue-100 text-blue-800 dark:bg-neon-cyan/15 dark:text-neon-cyan text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded mb-1">
                     ${lang === 'ta' ? 'தற்போது ஒளிபரப்பாகிறது' : 'Currently Playing'}
                   </span>
-                  <h4 class="font-extrabold text-[11px] text-slate-950 dark:text-white leading-snug">${activeVideoTitle}</h4>
+                  <h4 class="font-extrabold text-[11px] text-slate-950 dark:text-white leading-snug">${translateTitleDynamically(activeVideoTitle, lang)}</h4>
                 </div>
               </div>
 
@@ -737,7 +950,7 @@ function renderApp() {
                     <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterByGrade}</label>
                     <select id="video-grade-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
                       <option value="All" ${selectedGrade === 'All' ? 'selected' : ''}>${t.allGrades}</option>
-                      ${GRADES.map(g => `<option value="${g}" ${selectedGrade === g ? 'selected' : ''}>${TAMIL_MAP[g] || g}</option>`).join('')}
+                      ${GRADES.map(g => `<option value="${g}" ${selectedGrade === g ? 'selected' : ''}>${lang === 'ta' ? (TAMIL_MAP[g] || g) : g}</option>`).join('')}
                     </select>
                   </div>
 
@@ -746,7 +959,7 @@ function renderApp() {
                     <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterBySubject}</label>
                     <select id="video-subject-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
                       <option value="All" ${selectedSubject === 'All' ? 'selected' : ''}>${t.allSubjects}</option>
-                      ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}" ${selectedSubject === subKey ? 'selected' : ''}>${TAMIL_MAP[subKey] || SUBJECT_MAP[subKey]}</option>`).join('')}
+                      ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}" ${selectedSubject === subKey ? 'selected' : ''}>${getSubjectDisplayName(subKey, lang)}</option>`).join('')}
                     </select>
                   </div>
                 </div>
@@ -771,14 +984,14 @@ function renderApp() {
                     </div>
 
                     <div class="flex-grow min-w-0">
-                      <h4 class="font-extrabold text-[10px] text-slate-950 dark:text-white leading-snug truncate">${v.title}</h4>
-                      <p class="text-[8px] text-slate-400 dark:text-slate-400 font-bold mt-0.5 truncate">${v.lessonName}</p>
+                      <h4 class="font-extrabold text-[10px] text-slate-950 dark:text-white leading-snug truncate">${translateTitleDynamically(v.title, lang)}</h4>
+                      <p class="text-[8px] text-slate-400 dark:text-slate-400 font-bold mt-0.5 truncate">${translateTitleDynamically(v.lessonName, lang)}</p>
                       <div class="flex gap-1 mt-1">
                         <span class="bg-blue-100 text-blue-800 dark:bg-neon-purple/15 dark:text-neon-purple text-[7px] font-black tracking-wide px-1.5 py-0.2 rounded uppercase">
-                          ${TAMIL_MAP[v.grade] || v.grade}
+                          ${getGradeDisplayName(v.grade, lang)}
                         </span>
                         <span class="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-350 text-[7px] font-black tracking-wide px-1.5 py-0.2 rounded uppercase truncate">
-                          ${TAMIL_MAP[v.subject] || SUBJECT_MAP[v.subject] || v.subject}
+                          ${getSubjectDisplayName(v.subject, lang)}
                         </span>
                       </div>
                     </div>
@@ -906,7 +1119,7 @@ function renderApp() {
         </div>
 
         <!-- STYLISH SMARTPHONE BOTTON BAR (DYNAMIC CHROME TABS) -->
-        <div class="bg-slate-50 dark:bg-[#0c1221] border-t border-slate-200 dark:border-slate-900 py-1.5 px-1 flex justify-around items-center shrink-0 shadow-inner relative transition-colors duration-300">
+        <div class="bg-slate-50 dark:bg-[#0c1221] border-t border-slate-200 dark:border-slate-900 pt-1.5 pb-4.5 sm:pb-1.5 px-1 flex justify-around items-center shrink-0 shadow-inner relative transition-colors duration-300">
           
           <!-- Tab Item 1: Home -->
           <button id="nav-tab-home" class="flex flex-col items-center justify-center p-0.5 rounded-xl transition duration-300 cursor-pointer select-none" style="width: 58px;">
