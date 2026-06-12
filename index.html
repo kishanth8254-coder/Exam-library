@@ -566,14 +566,14 @@
         });
 
         rootElement.innerHTML = `
-          <div class="h-[100dvh] sm:min-h-screen w-full bg-[#050811] text-slate-800 dark:text-slate-100 flex flex-col items-center justify-center font-sans p-0 sm:p-4 overflow-hidden relative">
+          <div class="h-[100dvh] sm:min-h-screen md:h-screen md:min-h-0 w-full bg-[#050811] text-slate-800 dark:text-slate-100 flex flex-col items-center justify-center md:items-stretch md:justify-stretch font-sans p-0 sm:p-4 md:p-0 overflow-hidden relative">
             
             <!-- Ambient Backlights -->
             <div class="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-neon-purple/10 blur-[130px] pointer-events-none -z-10 hidden md:block"></div>
             <div class="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-neon-cyan/10 blur-[130px] pointer-events-none -z-10 hidden md:block"></div>
 
             <!-- App Container (Adapts between Mobile Phone Frame and Widescreen Desktop Hub) -->
-            <div class="w-full max-w-md md:max-w-6xl bg-white dark:bg-[#070b14] sm:rounded-3xl sm:border sm:border-slate-150 sm:dark:border-[#1a2333] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col md:flex-row h-[100dvh] sm:h-[840px] relative overflow-hidden shrink-0 z-10 transition-all duration-300">
+            <div class="w-full max-w-md md:max-w-none bg-white dark:bg-[#070b14] sm:rounded-3xl md:rounded-none sm:border md:border-none sm:dark:border-[#1a2333] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] md:shadow-none flex flex-col md:flex-row h-[100dvh] md:h-screen relative overflow-hidden shrink-0 md:shrink transition-all duration-300">
               
               <!-- DESKTOP DASHBOARD LEFT SIDEBAR (Hidden on mobile, pristine dark slate bar on desktop) -->
               <aside class="hidden md:flex flex-col w-64 bg-slate-50 dark:bg-[#0c1221] border-r border-slate-200 dark:border-slate-900 shrink-0 p-5 justify-between h-full transition-colors duration-300 select-none z-20">
