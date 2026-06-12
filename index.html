@@ -455,6 +455,10 @@
           if (clockElement) {
             clockElement.innerText = timeString;
           }
+          const sidebarClock = document.getElementById('sidebar-clock');
+          if (sidebarClock) {
+            sidebarClock.innerText = timeString;
+          }
         };
         updateTime();
         setInterval(updateTime, 10000);
@@ -568,25 +572,129 @@
             <div class="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-neon-purple/10 blur-[130px] pointer-events-none -z-10 hidden md:block"></div>
             <div class="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-neon-cyan/10 blur-[130px] pointer-events-none -z-10 hidden md:block"></div>
 
-            <!-- App Container (Phone Simulated Aspect Frame) -->
-            <div class="w-full max-w-md bg-white dark:bg-[#070b14] sm:rounded-3xl sm:border sm:border-slate-150 sm:dark:border-[#1a2333] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col h-[100dvh] sm:h-[840px] relative overflow-hidden shrink-0 z-10 transition-colors duration-300">
+            <!-- App Container (Adapts between Mobile Phone Frame and Widescreen Desktop Hub) -->
+            <div class="w-full max-w-md md:max-w-6xl bg-white dark:bg-[#070b14] sm:rounded-3xl sm:border sm:border-slate-150 sm:dark:border-[#1a2333] sm:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] flex flex-col md:flex-row h-[100dvh] sm:h-[840px] relative overflow-hidden shrink-0 z-10 transition-all duration-300">
               
-              <!-- COMPACT SMARTPHONE STATUS ROW (Fully Interactive Chrome Layout) -->
-              <div class="bg-slate-100 dark:bg-slate-900/60 backdrop-blur-md px-4 py-1.5 flex justify-between items-center text-[9px] font-black tracking-wide text-slate-500 dark:text-slate-450 z-20 shrink-0 select-none">
-                <div class="flex items-center space-x-1">
-                  <span id="smartphone-clock">${timeString}</span>
+              <!-- DESKTOP DASHBOARD LEFT SIDEBAR (Hidden on mobile, pristine dark slate bar on desktop) -->
+              <aside class="hidden md:flex flex-col w-64 bg-slate-50 dark:bg-[#0c1221] border-r border-slate-200 dark:border-slate-900 shrink-0 p-5 justify-between h-full transition-colors duration-300 select-none z-20">
+                <div class="space-y-6">
+                  <!-- Branding Card -->
+                  <div class="flex items-center space-x-3">
+                    <div class="p-2 text-white bg-blue-600 dark:bg-gradient-to-br dark:from-neon-purple dark:to-neon-cyan rounded-xl glow-purple flex items-center justify-center shrink-0">
+                      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path>
+                      </svg>
+                    </div>
+                    <div>
+                      <h1 class="text-[13px] font-black tracking-tight text-slate-950 dark:text-white uppercase leading-none">
+                        ${lang === 'ta' ? 'பரீட்சை நூலகம்' : 'Exam Library'}
+                      </h1>
+                      <span class="text-[8px] font-bold text-slate-500 dark:text-neon-cyan uppercase tracking-widest mt-0.5 block">
+                        ${lang === 'ta' ? 'கற்றல் வளக் களஞ்சியம்' : 'Tamil Resource Pool'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="h-[1px] bg-slate-200 dark:bg-slate-850"></div>
+
+                  <!-- Navigation Tree Links -->
+                  <nav class="space-y-1.5">
+                    <!-- Home btn -->
+                    <button class="nav-tab-home w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 cursor-pointer ${currentTab === 'home' ? 'bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan font-extrabold border border-blue-200/40 dark:border-neon-cyan/25' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white'}" style="width: 100%;">
+                      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                      </svg>
+                      <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.home}</span>
+                    </button>
+
+                    <!-- Books btn -->
+                    <button class="nav-tab-books w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 cursor-pointer ${currentTab === 'books' ? 'bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan font-extrabold border border-blue-200/40 dark:border-neon-cyan/25' : 'text-slate-400 dark:text-slate-500 hover:text-slate-800 dark:hover:text-white'}" style="width: 100%;">
+                      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                      </svg>
+                      <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.books}</span>
+                    </button>
+
+                    <!-- Papers btn -->
+                    <button class="nav-tab-papers w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 cursor-pointer ${currentTab === 'papers' ? 'bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan font-extrabold border border-blue-200/40 dark:border-neon-cyan/25' : 'text-slate-450 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}" style="width: 100%;">
+                      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                      <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.papers}</span>
+                    </button>
+
+                    <!-- Videos btn -->
+                    <button class="nav-tab-videos w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 cursor-pointer ${currentTab === 'videos' ? 'bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan font-extrabold border border-blue-200/40 dark:border-neon-cyan/25' : 'text-slate-450 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}" style="width: 100%;">
+                      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                      </svg>
+                      <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.videos}</span>
+                    </button>
+
+                    <!-- About btn -->
+                    <button class="nav-tab-about w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 cursor-pointer ${currentTab === 'about' ? 'bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan font-extrabold border border-blue-200/40 dark:border-neon-cyan/25' : 'text-slate-450 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}" style="width: 100%;">
+                      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.about}</span>
+                    </button>
+
+                    <!-- Contact btn -->
+                    <button class="nav-tab-contact w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 cursor-pointer ${currentTab === 'contact' ? 'bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan font-extrabold border border-blue-200/40 dark:border-neon-cyan/25' : 'text-slate-450 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}" style="width: 100%;">
+                      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                      </svg>
+                      <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.contact}</span>
+                    </button>
+                  </nav>
                 </div>
-                <div class="h-3 w-16 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-850">
-                  <div class="w-1.5 h-1.5 rounded-full bg-[#050811] dark:bg-slate-400"></div>
+
+                <!-- Sidebar Lower Section (Controls + Credits) -->
+                <div class="space-y-4">
+                  <div class="h-[1px] bg-slate-200 dark:bg-slate-850"></div>
+                  
+                  <!-- Quick Settings row in Sidebar -->
+                  <div class="flex items-center justify-between">
+                    <span class="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">${lang === 'ta' ? 'அமைப்புகள்' : 'Control Deck'}</span>
+                    <div class="flex items-center space-x-2">
+                      <!-- Language selector -->
+                      <div class="flex items-center bg-slate-200 dark:bg-slate-900 p-0.5 rounded-lg border dark:border-slate-800">
+                        <button class="lang-ta-btn px-1.5 py-0.5 text-[8px] font-black rounded-md transition-all ${lang === 'ta' ? 'bg-blue-600 text-white dark:bg-neon-cyan dark:text-slate-950 shadow-sm' : 'text-slate-550 hover:text-slate-800 dark:hover:text-slate-200'}">தமிழ்</button>
+                        <button class="lang-en-btn px-1.5 py-0.5 text-[8px] font-black rounded-md transition-all ${lang === 'en' ? 'bg-blue-600 text-white dark:bg-neon-cyan dark:text-slate-950 shadow-sm' : 'text-slate-555 hover:text-slate-800 dark:hover:text-slate-200'}">EN</button>
+                      </div>
+
+                      <!-- Theme toggle icon -->
+                      <button class="theme-toggle-btn p-1 px-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg bg-slate-150 dark:bg-slate-900 border dark:border-slate-850 hover:bg-slate-200 transition">
+                        ${darkMode ? `
+                          <svg class="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 110 2v-1a1 1 0 110-1zm-5.05-1.464l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 111.414 1.414zm0-8.486a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414-1.414l-.707-.707zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z" clip-rule="evenodd"></path>
+                          </svg>
+                        ` : `
+                          <svg class="w-3.5 h-3.5 text-slate-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                          </svg>
+                        `}
+                      </button>
+                    </div>
+                  </div>
+
+
+
+                  <!-- Technical Credits Tag info -->
+                  <div class="text-[7.5px] leading-tight font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide">
+                    <span>${lang === 'ta' ? 'அனைத்து வளங்களும் இலங்கை அரசு உத்தியோகபூர்வ வெளியீடுகள்.' : 'ALL EDUCATIONAL RESOURCES ARE SOURCED FROM GOVERNMENT BULLETINS.'}</span>
+                    <div class="mt-1 font-bold dark:text-neon-cyan">${lang === 'ta' ? 'உருவாக்கப்பட்டது: முல்லைத்தீவு' : 'Made with pride in Mullaitivu'}</div>
+                  </div>
                 </div>
-                <div class="flex items-center space-x-1.5">
-                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.22 19.58 10.57 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/></svg>
-                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
-                </div>
-              </div>
+              </aside>
+
+              <!-- Main Board Panel (Fits phone frames on mobile or covers remaining screen on desktop) -->
+              <div class="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+                
+
 
               <!-- COMPACT NAVBAR HEADER -->
-              <div class="bg-slate-50 dark:bg-[#111827] px-4 py-3.5 flex justify-between items-center border-b border-slate-200 dark:border-slate-900 shadow-sm shrink-0 transition-colors duration-300">
+              <div class="bg-slate-50 dark:bg-[#111827] px-4 py-3.5 flex justify-between items-center border-b border-slate-200 dark:border-slate-900 shadow-sm shrink-0 transition-colors duration-300 md:hidden">
                 <div class="flex items-center space-x-2">
                   <div class="p-1 px-1.5 text-white bg-blue-600 dark:bg-gradient-to-br dark:from-neon-purple dark:to-neon-cyan rounded-lg glow-purple flex items-center justify-center">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -606,12 +714,12 @@
                 <div class="flex items-center space-x-1.5">
                   <!-- Language Pill selectors -->
                   <div class="flex items-center bg-slate-200 dark:bg-slate-900 p-0.5 rounded-lg border dark:border-slate-800 transition">
-                    <button id="lang-ta-btn" class="px-1.5 py-0.5 text-[8px] font-black rounded-md transition-all ${lang === 'ta' ? 'bg-blue-600 text-white dark:bg-neon-cyan dark:text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}">தமிழ்</button>
-                    <button id="lang-en-btn" class="px-1.5 py-0.5 text-[8px] font-black rounded-md transition-all ${lang === 'en' ? 'bg-blue-600 text-white dark:bg-neon-cyan dark:text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}">EN</button>
+                    <button class="lang-ta-btn px-1.5 py-0.5 text-[8px] font-black rounded-md transition-all ${lang === 'ta' ? 'bg-blue-600 text-white dark:bg-neon-cyan dark:text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}">தமிழ்</button>
+                    <button class="lang-en-btn px-1.5 py-0.5 text-[8px] font-black rounded-md transition-all ${lang === 'en' ? 'bg-blue-600 text-white dark:bg-neon-cyan dark:text-slate-950 shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}">EN</button>
                   </div>
 
                   <!-- Theme toggle icon -->
-                  <button id="theme-toggle-btn" class="p-1 px-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg bg-slate-150 dark:bg-slate-900 border dark:border-slate-850 hover:bg-slate-200 transition">
+                  <button class="theme-toggle-btn p-1 px-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg bg-slate-150 dark:bg-slate-900 border dark:border-slate-850 hover:bg-slate-200 transition">
                     ${darkMode ? `
                       <svg class="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 110 2v-1a1 1 0 110-1zm-5.05-1.464l-.707.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 111.414 1.414zm0-8.486a1 1 0 00-1.414 1.414l.707.707a1 1 0 001.414-1.414l-.707-.707zM3 11a1 1 0 100-2H2a1 1 0 100 2h1z" clip-rule="evenodd"></path>
@@ -690,8 +798,8 @@
                     </div>
 
                     <!-- Sleek Information Bento blocks -->
-                    <section class="space-y-3">
-                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-neon-purple/10 transition flex items-start space-x-3">
+                    <section class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-neon-purple/10 hover:border-neon-purple/30 transition flex items-start space-x-3">
                         <div class="p-2.5 bg-blue-100 dark:bg-neon-purple/10 text-blue-600 dark:text-neon-purple rounded-xl shrink-0">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
@@ -784,7 +892,7 @@
                     </div>
 
                     <!-- List grid of books -->
-                    <div class="grid grid-cols-1 gap-3.5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                       ${filteredBooks.length === 0 ? `
                         <div class="p-8 text-center bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-900">
                           <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">${t.noBooksFound}</p>
@@ -862,7 +970,7 @@
                     </div>
 
                     <!-- List grid of verified papers -->
-                    <div class="grid grid-cols-1 gap-3.5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                       ${filteredPapers.length === 0 ? `
                         <div class="p-8 text-center bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-900">
                           <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">${t.noPapersFound}</p>
@@ -908,6 +1016,8 @@
                       <h2 class="text-base font-black text-slate-950 dark:text-white tracking-tight uppercase">${t.videosTitle}</h2>
                       <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">${t.videosDesc}</p>
                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                      <div class="md:col-span-12 lg:col-span-7 space-y-4">
 
                     <!-- Active Video Player Screen -->
                     <div class="bg-white dark:bg-[#111827] rounded-2xl border border-slate-150 dark:border-slate-850 p-2 shadow-sm space-y-2 animate-in fade-in duration-200">
@@ -959,9 +1069,14 @@
                         </div>
                       </div>
                     </div>
+                    </div> <!-- Close left column -->
 
-                    <!-- List grid of videos -->
-                    <div class="grid grid-cols-1 gap-2.5">
+                    <!-- Right Column: Playlist list -->
+                    <div class="md:col-span-12 lg:col-span-5 flex flex-col h-full overflow-hidden">
+                      <span class="text-[8px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider mb-2 hidden lg:block">
+                        ${lang === 'ta' ? 'அடுத்த வீடியோக்கள்' : 'Up Next / Related Lessons'}
+                      </span>
+                      <div class="grid grid-cols-1 gap-2.5 max-h-[480px] overflow-y-auto pr-1 no-scrollbar">
                       ${filteredVideos.length === 0 ? `
                         <div class="p-8 text-center bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-900">
                           <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">${t.noVideosFound}</p>
@@ -992,6 +1107,8 @@
                         </div>
                       `).join('')}
                     </div>
+                    </div> <!-- Close Right Playlist -->
+                    </div> <!-- Close Grid wrapper -->
                   </div>
                 ` : currentTab === 'about' ? `
                   <!-- TAB 5: ABOUT -->
@@ -1017,7 +1134,7 @@
                       </p>
                     </section>
 
-                    <div class="grid grid-cols-1 gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm">
                         <h4 class="font-black text-xs text-slate-950 dark:text-white dark:text-glow-purple uppercase tracking-wider mb-1.5">${t.missionTitle}</h4>
                         <p class="text-[10px] text-slate-600 dark:text-slate-450 leading-relaxed font-semibold">${t.missionDesc}</p>
@@ -1110,7 +1227,7 @@
               </div>
 
               <!-- STYLISH SMARTPHONE BOTTOM BAR (DYNAMIC CHROME TABS) -->
-              <div class="bg-slate-50 dark:bg-[#0c1221] border-t border-slate-200 dark:border-slate-900 pt-1.5 pb-4.5 sm:pb-1.5 px-1 flex justify-around items-center shrink-0 shadow-inner relative transition-colors duration-300">
+              <div class="bg-slate-50 dark:bg-[#0c1221] border-t border-slate-200 dark:border-slate-900 pt-1.5 pb-4.5 sm:pb-1.5 px-1 flex justify-around items-center shrink-0 shadow-inner relative transition-colors duration-300 md:hidden">
                 
                 <!-- Tab Item 1: Home -->
                 <button id="nav-tab-home" class="flex flex-col items-center justify-center p-0.5 rounded-xl transition duration-300 cursor-pointer select-none" style="width: 58px;">
@@ -1238,9 +1355,8 @@
       function bindEvents() {
         const tabs = ['home', 'books', 'papers', 'videos', 'about', 'contact'];
         tabs.forEach((tab) => {
-          const tabBtn = document.getElementById(`nav-tab-${tab}`);
-          if (tabBtn) {
-            tabBtn.onclick = () => {
+          document.querySelectorAll(`.nav-tab-${tab}, #nav-tab-${tab}`).forEach((btn) => {
+            btn.onclick = () => {
               currentTab = tab;
               contactSuccess = false;
               if (tab !== 'books' && tab !== 'papers' && tab !== 'videos') {
@@ -1248,32 +1364,29 @@
               }
               renderApp();
             };
-          }
+          });
         });
 
-        const taBtn = document.getElementById('lang-ta-btn');
-        if (taBtn) {
-          taBtn.onclick = () => {
+        document.querySelectorAll('.lang-ta-btn, #lang-ta-btn').forEach((btn) => {
+          btn.onclick = () => {
             lang = 'ta';
             renderApp();
           };
-        }
+        });
 
-        const enBtn = document.getElementById('lang-en-btn');
-        if (enBtn) {
-          enBtn.onclick = () => {
+        document.querySelectorAll('.lang-en-btn, #lang-en-btn').forEach((btn) => {
+          btn.onclick = () => {
             lang = 'en';
             renderApp();
           };
-        }
+        });
 
-        const themeBtn = document.getElementById('theme-toggle-btn');
-        if (themeBtn) {
-          themeBtn.onclick = () => {
+        document.querySelectorAll('.theme-toggle-btn, #theme-toggle-btn').forEach((btn) => {
+          btn.onclick = () => {
             darkMode = !darkMode;
             renderApp();
           };
-        }
+        });
 
         const homeSearchForm = document.getElementById('home-search-form');
         if (homeSearchForm) {
