@@ -1,6 +1,6 @@
 {
   "name": "Exam Library",
-  "description": "Sri Lankan Tamil medium exam library containing school textbooks, past papers, and educational resources.",
+  "description": "Sri Lankan Tamil medium exam library containing school textbooks, term assessments, and study resources uniquely optimized for Grade 9.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

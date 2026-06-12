@@ -97,27 +97,30 @@
 
       // --- Static High-Quality Fallback Data Bases ---
       const DEFAULT_BOOKS = [
-        { id: 'book-math-11', title: 'விஞ்ஞானம் தரம் 11 - முதலாம் பாகம்', grade: 'Grade 11', subject: 'science_subject', pdfUrl: 'http://www.nie.lk/pdffiles/tg/tGr11tg%20Science%20I.pdf' },
-        { id: 'book-math-10', title: 'கணிதம் தரம் 10 - முதலாம் பாகம்', grade: 'Grade 10', subject: 'maths_subject', pdfUrl: 'http://www.nie.lk/pdffiles/tg/tGr10tg%20Maths%20I.pdf' },
-        { id: 'book-tamil-11', title: 'தமிழ் மொழியும் இலக்கியமும் தரம் 11', grade: 'Grade 11', subject: 'tamil_subject', pdfUrl: 'http://www.nie.lk/pdffiles/tg/tGr11tg%2520Tamil.pdf' },
-        { id: 'book-ict-10', title: 'தொடர்பாடல் தொழில்நுட்பம் தரம் 10', grade: 'Grade 10', subject: 'ict_subject', pdfUrl: 'http://www.nie.lk/pdffiles/tg/tGr10tg%20ICT.pdf' },
-        { id: 'book-comb-12', title: 'Combined Mathematics Grade 12', grade: 'Grade 12', subject: 'comb_maths', pdfUrl: 'http://www.nie.lk/pdffiles/tg/tGr12tg%20CombinedMaths%20I.pdf' },
-        { id: 'book-physics-13', title: 'பௌதிகவியல் தரம் 13 - அலகு 4,5', grade: 'Grade 13', subject: 'physics_subject', pdfUrl: 'http://www.nie.lk/pdffiles/tg/tGr13tg%20Physics.pdf' }
+        { id: 'book-sci-9-p1', title: 'விஞ்ஞானம் தரம் 9 - முதலாம் பாகம்', grade: 'Grade 9', subject: 'science_subject', pdfUrl: 'https://drive.google.com/file/d/1-0IsnzOx_OscSLWKP1FpaG7Kz2GsWHm2/view?usp=drivesdk' },
+        { id: 'book-sci-9-p2', title: 'விஞ்ஞானம் தரம் 9 - இரண்டாம் பாகம்', grade: 'Grade 9', subject: 'science_subject', pdfUrl: 'https://drive.google.com/file/d/1KF1OdHlgqWGrczTJ4ZjonRhsIav71QUw/view?usp=drivesdk' },
+        { id: 'book-chr-9', title: 'கிறிஸ்தவ சமயம் தரம் 9', grade: 'Grade 9', subject: 'christianity_subject', pdfUrl: 'https://drive.google.com/file/d/1jZiy562DZcoHEncgjCZ7BkueYGEaE8Qz/view?usp=drivesdk' },
+        { id: 'book-his-9', title: 'வரலாறு தரம் 9', grade: 'Grade 9', subject: 'history_subject', pdfUrl: 'https://drive.google.com/file/d/1w057GpOgImhxmuoo6tvNNXe238VDnINV/view?usp=drivesdk' },
+        { id: 'book-eng-9-wb', title: 'English Workbook Grade 9', grade: 'Grade 9', subject: 'english_subject', pdfUrl: 'https://drive.google.com/file/d/1ZXxQLj_LNBiaqcnW2f98JW7n3V1zj4l2/view?usp=drivesdk' },
+        { id: 'book-pts-9', title: 'நடைமுறைத் தொழினுட்பத் தேர்ச்சி (PTS) தரம் 9', grade: 'Grade 9', subject: 'pts_subject', pdfUrl: 'https://drive.google.com/file/d/1lU1mezNv5_h9jOaloBaZtw3wF9zZKaPy/view?usp=drivesdk' },
+        { id: 'book-civ-9', title: 'குடியியல் கல்வி தரம் 9', grade: 'Grade 9', subject: 'civics_subject', pdfUrl: 'https://drive.google.com/file/d/19BsxL7q3fl1ZiP-jio5WEFqRKJcPM4Ce/view?usp=drivesdk' },
+        { id: 'book-ict-9-p1', title: 'தகவல் தொடர்பு தொழில்நுட்பம் (ICT) தரம் 9', grade: 'Grade 9', subject: 'ict_subject', pdfUrl: 'https://drive.google.com/file/d/1jD3-VnVmTuUyXQ55dsx7sUy_atK49O_-/view?usp=drivesdk' },
+        { id: 'book-rel-9', title: 'சைவ சமயம் தரம் 9', grade: 'Grade 9', subject: 'religion_subject', pdfUrl: 'https://drive.google.com/file/d/1CUareR-lro6fMLGL8-4tWPQIwQcaHDOJ/view?usp=drivesdk' },
+        { id: 'book-sin-9', title: 'சிங்களம் தரம் 9', grade: 'Grade 9', subject: 'sinhalam_subject', pdfUrl: 'https://drive.google.com/file/d/1F1--9ebQDmJMWU9cy7g1ZVkaqOoXsZb8/view?usp=drivesdk' },
+        { id: 'book-sci-eng-9-p2', title: 'Science Grade 9 - Part II (English Medium)', grade: 'Grade 9', subject: 'science_subject', pdfUrl: 'https://drive.google.com/file/d/15J8ZYkfbVPmW7GOo88elZ9181uHf8xv5/view?usp=drivesdk' },
+        { id: 'book-sci-eng-9-p1', title: 'Science Grade 9 - Part I (English Medium)', grade: 'Grade 9', subject: 'science_subject', pdfUrl: 'https://drive.google.com/file/d/16imktvDgWXcsWtgVdHybUt1yDfaymxTM/view?usp=drivesdk' },
+        { id: 'book-math-eng-9-p1', title: 'Mathematics Grade 9 - Part I (English Medium)', grade: 'Grade 9', subject: 'maths_subject', pdfUrl: 'https://drive.google.com/file/d/1_K3csqgm8bBdEZfM5-7eXakPaee3Ay1t/view?usp=drivesdk' },
+        { id: 'book-math-eng-9-p3', title: 'Mathematics Grade 9 - Part III (English Medium)', grade: 'Grade 9', subject: 'maths_subject', pdfUrl: 'https://drive.google.com/file/d/1zHdgXv_jQ3c6akUDqrs8KWbSII7x3W-M/view?usp=drivesdk' },
+        { id: 'book-math-9-p3', title: 'கணிதம் தரம் 9 - மூன்றாம் பாகம்', grade: 'Grade 9', subject: 'maths_subject', pdfUrl: 'https://drive.google.com/file/d/1r-YC5LJQ0zYhKyancBZhEzVnD21M8h9o/view?usp=drivesdk' },
+        { id: 'book-health-9', title: 'சுகாதாரமும் உடற்கல்வியும் தரம் 9', grade: 'Grade 9', subject: 'health_subject', pdfUrl: 'https://drive.google.com/file/d/1yia9CqavG5v_KJqG5uHfo12OtRZaXlpf/view?usp=drivesdk' },
+        { id: 'book-ict-9', title: 'தகவல் மற்றும் தொடர்பாடல் தொழில்நுட்பம் தரம் 9', grade: 'Grade 9', subject: 'ict_subject', pdfUrl: 'http://www.nie.lk/pdffiles/tg/tGr9tg%20ICT.pdf' }
       ];
 
-      const DEFAULT_PAST_PAPERS = [
-        { id: 'paper-math-11-2023', year: '2023', examType: 'O/L', subject: 'maths_subject', pdfUrl: 'https://pastpapers.wiki/wp-content/uploads/2024/01/2023-OL-Mathematics-Paper-Tamil-Medium.pdf' },
-        { id: 'paper-science-11-2023', year: '2023', examType: 'O/L', subject: 'science_subject', pdfUrl: 'https://pastpapers.wiki/wp-content/uploads/2024/01/2023-OL-Science-Paper-Tamil-Medium.pdf' },
-        { id: 'paper-comb-13-2023', year: '2023', examType: 'A/L', subject: 'comb_maths', pdfUrl: 'https://pastpapers.wiki/wp-content/uploads/2023/12/2023-AL-Combined-Maths-Paper-Tamil-Medium.pdf' },
-        { id: 'paper-physics-13-2022', year: '2022', examType: 'A/L', subject: 'physics_subject', pdfUrl: 'https://pastpapers.wiki/wp-content/uploads/2023/02/2022-AL-Physics-Paper-Tamil-Medium.pdf' },
-        { id: 'paper-chem-13-2022', year: '2022', examType: 'A/L', subject: 'chem_subject', pdfUrl: 'https://pastpapers.wiki/wp-content/uploads/2023/02/2022-AL-Chemistry-Paper-Tamil-Medium.pdf' }
-      ];
+      const DEFAULT_PAST_PAPERS = [];
 
       const DEFAULT_VIDEOS = [
-        { id: 'vid-1', title: 'தரம் 10 கணிதம் - மெய்யெண்கள்', grade: 'Grade 10', subject: 'maths_subject', lessonName: 'மெய்யெண்கள் தொடர்பான அறிமுகம்', youtubeId: '8iAgbRutHTE' },
-        { id: 'vid-2', title: 'தரம் 11 விஞ்ஞானம் - கலவட்டங்கள்', grade: 'Grade 11', subject: 'science_subject', lessonName: 'உயிரினங்களின் வாழ்க்கைக் வட்டம்', youtubeId: '8iAgbRutHTE' },
-        { id: 'vid-3', title: 'தரம் 13 பௌதிகவியல் - அளவீடு', grade: 'Grade 13', subject: 'physics_subject', lessonName: 'அளவீட்டு உபகரணங்கள் மற்றும் வழுக்கள்', youtubeId: '8iAgbRutHTE' },
-        { id: 'vid-4', title: 'தரம் 12 இரசாயனவியல் - வாயுவகை', grade: 'Grade 12', subject: 'chem_subject', lessonName: 'வாயு அலகு அடிப்படைக் கோட்பாடுகள்', youtubeId: '8iAgbRutHTE' }
+        { id: 'vid-1', title: 'தரம் 9 கணிதம் - சுட்டிகள்', grade: 'Grade 9', subject: 'maths_subject', lessonName: 'சுட்டிகள் தொடர்பான அறிமுகம்', youtubeId: '8iAgbRutHTE' },
+        { id: 'vid-2', title: 'தரம் 9 விஞ்ஞானம் - சடப்பொருள்', grade: 'Grade 9', subject: 'science_subject', lessonName: 'சடப்பொருளின் கட்டமைப்பு', youtubeId: '8iAgbRutHTE' }
       ];
 
       // --- Translations Directory ---
@@ -129,45 +132,45 @@
           about: 'எம்மைப் பற்றி',
           contact: 'தொடர்புகளுக்கு',
           freeEducationalPool: 'இலவச கற்றல் தளம்',
-          heroTitle: 'தமிழ் மாணவர்களுக்கான',
-          heroTitleAccent: 'அனைத்து கற்றல் வளங்களும்',
+          heroTitle: 'தரம் 9 தமிழ் மாணவர்களுக்கான',
+          heroTitleAccent: 'முழுமையான கற்றல் களம்',
           heroTitleSuffix: 'ஒரே இடத்தில்!',
-          heroDesc: 'பாடசாலைத் தரம் 6 முதல் உயர்தர (A/L) மாணவர்களுக்கான பாடப்புத்தகங்கள், கடந்தகால வினாத்தாள்களை இலவசமாக இலகுவில் பதிவிறக்கம் செய்யுங்கள்.',
-          searchPlaceholder: 'வினாத்தாள்கள், பாடப்புத்தகங்களை தேடுக...',
+          heroDesc: 'உத்தியோகபூர்வ தரம் 9 பாடநூல்கள் மற்றும் கற்றல் வளங்களை எவ்வித விளம்பரங்களும் இன்றி எளிதாகப் பதிவிறக்குங்கள்.',
+          searchPlaceholder: 'பாடப்புத்தகங்களை தேடுக...',
           searchBtn: 'தேடுக',
-          allTextbooks: 'அனைத்து பாடப்புத்தகங்கள்',
-          allTextbooksDesc: 'கல்வி வெளியீட்டுத் திணைக்களத்தின் தரம் 6 தொடக்கம் உயர்தரம் வரையிலான தமிழ்மொழி மூலப் பாடப் புத்தகங்கள் ஒழுங்கமைக்கப்பட்டுள்ளன.',
+          allTextbooks: 'தரம் 9 பாடப்புத்தகங்கள்',
+          allTextbooksDesc: 'கல்வி வெளியீட்டுத் திணைக்களத்தின் தரம் 9 தமிழ்மொழி மூலப் பாடப் புத்தகங்கள் முழுமையாக ஒழுங்கமைக்கப்பட்டுள்ளன.',
           papersAndAnswers: 'வினாத்தாள்கள் & விடைகள்',
-          papersAndAnswersDesc: 'முக்கியமான க.பொ.த சாதாரண தரம் (O/L) மற்றும் உயர்தர (A/L) முந்தைய வருட கடந்தகால வினாத்தாள்கள் விடைகளுடன் தொகுக்கப்பட்டுள்ளன.',
+          papersAndAnswersDesc: 'தரம் 9 முந்தைய வருட மற்றும் தவணை வினாத்தாள்கள் விடைகளுடன் தொகுக்கப்பட்டுள்ளன.',
           freeDownload: 'இலவச பதிவிறக்கம்',
-          freeDownloadDesc: 'உறுதியான PDF வடிவத்தில் எந்நேரமும், எவ்வித பதிவுக்கட்டணமும் இன்றி நேரடியாக உங்களது கணினி அல்லது மொபைல் போனுக்கு பதிவிறக்கிப் படியுங்கள்.',
+          freeDownloadDesc: 'உறுதியான PDF வடிவத்தில் எந்நேரமும், எவ்விட வரம்புகளும் இன்றி நேரடியாக உங்களது கணினி அல்லது மொபைல் போனுக்கு பதிவிறக்கிப் படியுங்கள்.',
           filterByGrade: 'தரம்:',
           filterBySubject: 'பாடம்:',
           filterByExamType: 'பரீட்சை வகை:',
           searchBooksPlaceholder: 'புத்தகத்தின் பெயர்...',
           searchPapersPlaceholder: 'ஆண்டு அல்லது பாடம்...',
-          noBooksFound: 'எதுவும் கண்டறியப்படவில்லை. வேறு சொல்லில் முயலவும்.',
-          noPapersFound: 'வினாத்தாள்கள் கண்டறியப்படவில்லை.',
-          booksTitle: 'தமிழ் மூல பாடப்புத்தகங்கள்',
-          booksDesc: 'தரம் 6 முதல் உயர்தரம் வரையிலான இலங்கை பாடப்புத்தகங்கள்',
+          noBooksFound: 'தேடப்பட்ட மின்நூல் இன்னும் பதிவேற்றப்படவில்லை. எஞ்சிய பாடங்கள் விரைவில் பதிவேற்றப்படும்! (Coming Soon)',
+          noPapersFound: 'தேடப்பட்ட வினாத்தாள் இன்னும் பதிவேற்றப்படவில்லை. விரைவில் பதிவேற்றப்படும்! (Coming Soon)',
+          booksTitle: 'தரம் 9 தமிழ் மூல பாடப்புத்தகங்கள்',
+          booksDesc: 'இலங்கைத் தரம் 9 பாடத்திட்டத்தின் கீழ் அமையப்பெற்ற அனைத்து தமிழ் மூல பாடப்புத்தகங்கள்',
           papersTitle: 'கடந்த கால வினாத்தாள்கள்',
-          papersDesc: 'மாணவர்கள் பரீட்சைக்குத் தங்களைத் தயார்படுத்துவதற்கான வினாத்தாள்கள்',
+          papersDesc: 'மாணவர்கள் தவணைப் பரீட்சைக்குத் தங்களைத் தயார்படுத்துவதற்கான வினாத்தாள்கள்',
           aboutBannerDesc: 'அனைத்து வளங்களும் உத்தியோகபூர்வ வெளியீடுகளை அடிப்படையாகக் கொண்டவை.',
           value1Desc: 'விளம்பரங்களோ அல்லது பிரத்தியேகக் கட்டணங்களோ இன்றி தமிழ் மாணவர்களுக்காய் உழைத்தல்.',
           aboutTitle: 'எம்மைப் பற்றி',
           aboutDesc: 'பரீட்சை நூலகத்தின் கல்விச் சேவைப் பார்வை',
-          aboutHeroTitle: 'தமிழ் மாணவர்களின் சிறந்த கல்வித் துணைவன்!',
-          aboutHeroDesc: 'இலங்கையில் தமிழ் மொழி மூலம் கல்வி கற்கும் தரம் 6 முதல் தரம் 13 வரையிலான பள்ளி மாணவர்களுக்கான அத்தியாவசிய கையேடுகள் மற்றும் வினாத்தாள்களை ஒரே கைத்தொலைபேசி செயலி வடிவில் வழங்குவதே எமதின் இலக்காகும்.',
+          aboutHeroTitle: 'தரம் 9 மாணவர்களின் சிறந்த கல்வித் துணைவன்!',
+          aboutHeroDesc: 'இலங்கையில் தமிழ் மொழி மூலம் கல்வி கற்கும் தரம் 9 மாணவர்களுக்கான அத்தியாவசிய கையேடுகள் மற்றும் வினாத்தாள்களை ஒரே இணைய தளம் வடிவில் வழங்குவதே எமதின் இலக்காகும்.',
           missionTitle: 'எமது இலக்கு',
-          missionDesc: 'பொருளாதார ரீதியில் பின்தங்கிய அல்லது கல்வி வளங்கள் தாராளமாக கிடைக்காத பிரதேசங்களில் வாழ்கின்ற தமிழ் மாணவர்களுக்கும் சமவள வாய்ப்புகளை வழங்கி, நவீன இணையத் தொழில்நுட்பங்களின் துணையுடன் கல்விசார் இடைவெளிகளைக் குறைப்பது எங்களது முதன்மை பணியாகும்.',
+          missionDesc: 'பொருளாதார ரீதியில் பின்தங்கிய அல்லது கல்வி வளங்கள் தாராளமாக கிடைக்காத பிரதேசங்களில் வாழ்கின்ற தமிழ் மாணவர்களுக்கும் சமவள வாய்ப்புகளை வழங்கி, நவீன இணையத் தொழில்நுட்பங்களின் துணையுடன் தரம் 9 கல்விசார் வளங்களை இலவசமாக்குவதே எம் பணியாகும்.',
           contactTitle: 'தொடர்புகளுக்கு',
-          contactDesc: 'உங்கள் கருத்துக்கள் அல்லது பாடசாலை வளங்கள் பற்றிய பதிவேற்றக் கோரிக்கைகளை எமக்கு அனுப்புங்கள்.',
+          contactDesc: 'உங்கள் கருத்துக்கள் அல்லது தரம் 9 கல்வி வளங்கள் பற்றிய கோரிக்கைகளை எமக்கு அனுப்புங்கள்.',
           nameLabel: 'முழுப் பெயர்',
           emailLabel: 'மின்னஞ்சல் முகவரி',
           messageLabel: 'உங்களது செய்தி அல்லது வளங்கள் பற்றிய கோரிக்கை',
           sendMsg: 'செய்தியை அனுப்பு',
           msgSuccess: 'செய்தி வெற்றிகரமாக அனுப்பப்பட்டது! விரைவில் தொடர்பு கொள்வோம்.',
-          allGrades: 'அனைத்து தரங்களும்',
+          allGrades: 'தரம் 9',
           allSubjects: 'அனைத்து பாடங்களும்',
           allExamTypes: 'அனைத்து பரீட்சைகளும்',
           downloadPdf: 'இலவச PDF பதிவிறக்கம்',
@@ -175,28 +178,28 @@
           close: 'மூடு',
           allRightsReserved: 'அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.',
           videos: 'காணொளிகள்',
-          videosTitle: 'நவீன காணொளிப் பாடங்கள்',
-          videosDesc: 'இலங்கைப் பாடத்திட்டத்தின் கீழ் தரம் மற்றும் பாடம் வாரியாக கற்பிக்கப்படும் காணொளிப் பாடங்கள்.',
+          videosTitle: 'தரம் 9 காணொளிப் பாடங்கள்',
+          videosDesc: 'இலங்கைப் பாடத்திட்டத்தின் கீழ் தரம் 9 கற்பிக்கப்படும் நவீன காணொளிப் பாடங்கள்.',
           searchVideosPlaceholder: 'காணொளிகளை தேடுக...',
           noVideosFound: 'காணொளிப் பாடங்கள் எதுவும் கண்டறியப்படவில்லை.'
         },
         en: {
           home: 'Home',
-          books: 'Textbooks',
+          books: 'Grade 9 Textbooks',
           papers: 'Past Papers',
           about: 'About',
           contact: 'Contact',
           freeEducationalPool: 'Free Educational Pool',
-          heroTitle: 'All Educational Resources',
-          heroTitleAccent: 'For Tamil Medium',
+          heroTitle: 'Grade 9',
+          heroTitleAccent: 'Tamil Medium Library',
           heroTitleSuffix: 'In One Place!',
-          heroDesc: 'Download free educational textbooks, marking schemes, and past papers tailored for Grade 6 to Advanced Level (A/L) students in Sri Lanka.',
-          searchPlaceholder: 'Search papers, textbooks, or subjects...',
+          heroDesc: 'Download official Grade 9 term textbooks and learning materials tailored for Tamil medium instruction.',
+          searchPlaceholder: 'Search textbooks or subjects...',
           searchBtn: 'Search',
-          allTextbooks: 'All Textbooks',
-          allTextbooksDesc: 'Completely organized Sri Lankan curriculum textbooks from Grade 6 to Advanced Level for Tamil medium instruction.',
+          allTextbooks: 'Grade 9 Textbooks',
+          allTextbooksDesc: 'Completely organized Sri Lankan curriculum textbooks for Grade 9 Tamil medium instruction.',
           papersAndAnswers: 'Past Papers & Answers',
-          papersAndAnswersDesc: 'Important GCE Ordinary Level (O/L) and Advanced Level (A/L) examination papers organized with marking schemes.',
+          papersAndAnswersDesc: 'Important term test papers and model queries curated for Grade 9 evaluation.',
           freeDownload: 'Free Direct Download',
           freeDownloadDesc: 'Access robust educational PDF materials anytime instantly without registration fees or logins.',
           filterByGrade: 'Grade:',
@@ -204,28 +207,28 @@
           filterByExamType: 'Exam Type:',
           searchBooksPlaceholder: 'Search book by name...',
           searchPapersPlaceholder: 'Search by year or subject...',
-          noBooksFound: 'No textbooks found matching your search. Please try a different query.',
-          noPapersFound: 'No past papers found.',
-          booksTitle: 'All Tamil Medium Textbooks',
-          booksDesc: 'Curriculum textbooks from Grade 6 to Advanced Level (A/L)',
+          noBooksFound: 'This textbook is not listed yet. Other subjects are Coming Soon!',
+          noPapersFound: 'This past paper has not been uploaded yet. Other files are Coming Soon!',
+          booksTitle: 'Grade 9 Textbooks',
+          booksDesc: 'Curriculum textbooks for Grade 9 Tamil medium instruction',
           papersTitle: 'Past Papers & Marking Schemes',
-          papersDesc: 'Official exam papers and answer keys to help students prepare',
+          papersDesc: 'Term exam papers and answer keys to help Grade 9 students prepare',
           aboutBannerDesc: 'All academic materials are sourced from official national publications.',
           value1Desc: 'Absolutely ad-free platform built strictly for student growth.',
           aboutTitle: 'About Us',
           aboutDesc: 'Education service perspectives of the Exam Library',
-          aboutHeroTitle: 'Empowering Tamil Medium Students!',
-          aboutHeroDesc: 'Our primary goal is to gather and organize essential textbooks, handbooks, and past papers under a single mobile app interface, enabling students from Grade 6 to Grade 13 to study with ease.',
+          aboutHeroTitle: 'Empowering Grade 9 Students!',
+          aboutHeroDesc: 'Our primary goal is to gather and organize essential textbooks, handbooks, and term papers under a single modern interface, enabling Grade 9 students to study with ease.',
           missionTitle: 'Our Mission',
-          missionDesc: 'To provide equal educational opportunities to Tamil-medium students living in rural or underprivileged areas, leveraging technology to bridge educational divides.',
+          missionDesc: 'To provide equal educational opportunities to Grade 9 Tamil-medium students leveraging technology to bridge educational divides.',
           contactTitle: 'Contact Support',
-          contactDesc: 'Send us your questions, feedback, or curriculum resource contribution requests.',
+          contactDesc: 'Send us your questions, feedback, or Grade 9 resource requests.',
           nameLabel: 'Full Name',
           emailLabel: 'Email Address',
           messageLabel: 'Your Message or Resource Request',
           sendMsg: 'Send Message',
           msgSuccess: 'Your message has been sent successfully! We will get back to you shortly.',
-          allGrades: 'All Grades',
+          allGrades: 'Grade 9',
           allSubjects: 'All Subjects',
           allExamTypes: 'All Exam Types',
           downloadPdf: 'Free PDF Download',
@@ -234,7 +237,7 @@
           allRightsReserved: 'All rights reserved.',
           videos: 'Videos',
           videosTitle: 'Video Lessons',
-          videosDesc: 'Detailed educational videos categorized by grade and subject.',
+          videosDesc: 'Detailed Grade 9 educational videos categorized by subject.',
           searchVideosPlaceholder: 'Search video lessons...',
           noVideosFound: 'No video lessons found.'
         }
@@ -253,7 +256,14 @@
         bio_subject: 'Biology',
         commerce_subject: 'Commerce',
         econ_subject: 'Economics',
-        acc_subject: 'Accounting'
+        acc_subject: 'Accounting',
+        christianity_subject: 'Christianity',
+        pts_subject: 'Practical Tech (PTS)',
+        civics_subject: 'Civics',
+        religion_subject: 'Religion (Shaivam)',
+        sinhalam_subject: 'Sinhala',
+        english_subject: 'English',
+        health_subject: 'Health Science'
       };
 
       const TAMIL_MAP = {
@@ -280,7 +290,14 @@
         'bio_subject': 'உயிரியல்',
         'commerce_subject': 'வர்த்தகம்',
         'econ_subject': 'பொருளியல்',
-        'acc_subject': 'கணக்கியல்'
+        'acc_subject': 'கணக்கியல்',
+        'christianity_subject': 'கிறிஸ்தவ சமயம்',
+        'pts_subject': 'நடைமுறைத் தொழினுட்பத் தேர்ச்சி (PTS)',
+        'civics_subject': 'குடியியல் கல்வி',
+        'religion_subject': 'சைவ சமயம்',
+        'sinhalam_subject': 'சிங்களம்',
+        'english_subject': 'ஆங்கிலம்',
+        'health_subject': 'சுகாதாரமும் உடற்கல்வியும்'
       };
 
       const SUBJECTS_DATABASE_MAP = [
@@ -296,28 +313,28 @@
         { key: 'bio_subject', en: 'Biology', ta: 'உயிரியல்', matches: ['biology', 'bio', 'bio_subject', 'உயிரியல்'] },
         { key: 'commerce_subject', en: 'Commerce', ta: 'வர்த்தகம்', matches: ['commerce', 'commerce_subject', 'வர்த்தகம்'] },
         { key: 'econ_subject', en: 'Economics', ta: 'பொருளியல்', matches: ['economics', 'econ', 'econ_subject', 'பொருளியல்'] },
-        { key: 'acc_subject', en: 'Accounting', ta: 'கணக்கியல்', matches: ['accounting', 'accounts', 'acc_subject', 'கணக்கியல்'] }
+        { key: 'acc_subject', en: 'Accounting', ta: 'கணக்கியல்', matches: ['accounting', 'accounts', 'acc_subject', 'கணக்கியல்'] },
+        { key: 'christianity_subject', en: 'Christianity', ta: 'கிறிஸ்தவ சமயம்', matches: ['christianity', 'christian', 'கிறிஸ்தவம்', 'கிறிஸ்தவ சமயம்'] },
+        { key: 'pts_subject', en: 'PTS', ta: 'நடைமுறைத் தொழினுட்பத் தேர்ச்சி (PTS)', matches: ['pts', 'practical tech', 'practical and technical skills', 'தேர்ச்சி', 'தொழில்நுட்பம்', 'pts_subject'] },
+        { key: 'civics_subject', en: 'Civics', ta: 'குடியியல் கல்வி', matches: ['civics', 'குடியியல்', 'குடியியல் கல்வி', 'civics_subject'] },
+        { key: 'religion_subject', en: 'Religion', ta: 'சைவ சமயம்', matches: ['religion', 'shaivam', 'சைவ சமயம்', 'சமயம்', 'religion_subject'] },
+        { key: 'sinhalam_subject', en: 'Sinhala', ta: 'சிங்களம்', matches: ['sinhala', 'sinhalam', 'சிங்களம்', 'sinhalam_subject'] },
+        { key: 'english_subject', en: 'English', ta: 'ஆங்கிலம்', matches: ['english', 'english workbook', 'ஆங்கிலம்', 'english_subject'] },
+        { key: 'health_subject', en: 'Health Science', ta: 'சுகாதாரமும் உடற்கல்வியும்', matches: ['health', 'health science', 'சுகாதாரம்', 'உடற்கல்வி', 'சுகாதாரமும் உடற்கல்வியும்', 'health_subject'] }
       ];
 
       const GRADES_DATABASE_MAP = [
-        { key: 'Grade 6', ta: 'தரம் 6', en: 'Grade 6', matches: ['தரம் 6', 'grade 6', '6'] },
-        { key: 'Grade 7', ta: 'தரம் 7', en: 'Grade 7', matches: ['தரம் 7', 'grade 7', '7'] },
-        { key: 'Grade 8', ta: 'தரம் 8', en: 'Grade 8', matches: ['தரம் 8', 'grade 8', '8'] },
-        { key: 'Grade 9', ta: 'தரம் 9', en: 'Grade 9', matches: ['தரம் 9', 'grade 9', '9'] },
-        { key: 'Grade 10', ta: 'தரம் 10', en: 'Grade 10', matches: ['தரம் 10', 'grade 10', '10'] },
-        { key: 'Grade 11', ta: 'தரம் 11 (O/L)', en: 'Grade 11 (O/L)', matches: ['தரம் 11', 'தரம் 11 (o/l)', 'grade 11', 'grade 11 (o/l)', '11', 'o/l', 'ol'] },
-        { key: 'Grade 12', ta: 'தரம் 12', en: 'Grade 12', matches: ['தரம் 12', 'grade 12', '12'] },
-        { key: 'Grade 13', ta: 'தரம் 13 (A/L)', en: 'Grade 13 (A/L)', matches: ['தரம் 13', 'தரம் 13 (a/l)', 'grade 13', 'grade 13 (a/l)', '13', 'a/l', 'al'] },
+        { key: 'Grade 9', ta: 'தரம் 9', en: 'Grade 9', matches: ['தரம் 9', 'grade 9', '9'] }
       ];
 
-      const GRADES = ['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'Grade 13'];
+      const GRADES = ['Grade 9'];
 
       // --- Global App State Variables ---
       let currentTab = 'home';
       let lang = 'ta';
       let darkMode = true;
       let searchKeyword = '';
-      let selectedGrade = 'All';
+      let selectedGrade = 'Grade 9';
       let selectedSubject = 'All';
       let selectedExamType = 'All';
       let timeString = '12:00 PM';
@@ -327,7 +344,7 @@
       let videos = [...DEFAULT_VIDEOS];
 
       let activeVideoId = '8iAgbRutHTE';
-      let activeVideoTitle = 'தரம் 10 கணிதம் - மாதிரி காணொளிப் பாடம்';
+      let activeVideoTitle = 'தரம் 9 கணிதம் - சுட்டிகள்';
       let activePdfUrl = null;
       let activePdfTitle = null;
       let contactSuccess = false;
@@ -937,76 +954,24 @@
                       <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">${t.papersDesc}</p>
                     </div>
 
-                    <!-- Filter blocks -->
-                    <div class="bg-white dark:bg-[#111827] p-3 rounded-xl border border-slate-200 dark:border-neon-purple/15 space-y-3 shadow-sm">
-                      <div class="relative">
-                        <input 
-                          type="text"
-                          id="paper-filter-search"
-                          placeholder="${t.searchPapersPlaceholder}"
-                          value="${searchKeyword}"
-                          class="w-full pl-3 pr-3 py-2 rounded-lg text-[10px] placeholder-slate-400 bg-slate-100 dark:bg-slate-950 font-bold text-slate-950 dark:text-white border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-cyan"
-                        />
+                    <!-- Beautiful Educational Lock / Coming Soon Layout -->
+                    <div class="p-8 text-center bg-white dark:bg-[#111827] rounded-2xl border border-dashed border-slate-300 dark:border-neon-purple/20 flex flex-col items-center justify-center space-y-4 py-12 shadow-sm animate-in fade-in duration-300">
+                      <div class="p-3.5 bg-purple-100 dark:bg-neon-purple/10 text-purple-600 dark:text-neon-purple rounded-full shrink-0">
+                        <svg class="w-8 h-8 animate-pulse text-glow-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
                       </div>
-
-                      <div class="grid grid-cols-2 gap-2">
-                        <div>
-                          <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterByExamType}</label>
-                          <select id="paper-examtype-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
-                            <option value="All" ${selectedExamType === 'All' ? 'selected' : ''}>${t.allExamTypes}</option>
-                            <option value="O/L" ${selectedExamType === 'O/L' ? 'selected' : ''}>${lang === 'ta' ? (TAMIL_MAP['O/L'] || 'O/L') : 'O/L'}</option>
-                            <option value="A/L" ${selectedExamType === 'A/L' ? 'selected' : ''}>${lang === 'ta' ? (TAMIL_MAP['A/L'] || 'A/L') : 'A/L'}</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterBySubject}</label>
-                          <select id="paper-subject-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
-                            <option value="All" ${selectedSubject === 'All' ? 'selected' : ''}>${t.allSubjects}</option>
-                            ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}" ${selectedSubject === subKey ? 'selected' : ''}>${getSubjectDisplayName(subKey, lang)}</option>`).join('')}
-                          </select>
-                        </div>
+                      <div class="space-y-1.5 max-w-sm">
+                        <h3 class="font-black text-sm text-slate-950 dark:text-white uppercase tracking-wider">
+                          ${lang === 'ta' ? 'கடந்த கால வினாத்தாள்கள் - விரைவில்!' : 'Past Papers - Coming Soon!'}
+                        </h3>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
+                          ${lang === 'ta' ? 'தரம் 9 மாணவர்களுக்கான தவணைப் பரீட்சை வினாத்தாள்கள், மாகாணக் கல்வித் திணைக்கள மாதிரித் தாள்கள் ஆகியவை உங்களது பயிற்சிக்காக விரைவில் இப்பக்கத்தில் தொகுக்கப்பட்டுப் பதிவேற்றப்படும்.' : 'Grade 9 school term assessment papers, provincial evaluations, and structured model query sheets are currently being formatted and will be uploaded here soon.'}
+                        </p>
                       </div>
-                    </div>
-
-                    <!-- List grid of verified papers -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                      ${filteredPapers.length === 0 ? `
-                        <div class="p-8 text-center bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-900">
-                          <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">${t.noPapersFound}</p>
-                        </div>
-                      ` : filteredPapers.map((p) => `
-                        <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm p-3.5 flex items-start space-x-3 hover:scale-[1.01] transition duration-250">
-                          <div class="w-11 h-14 bg-gradient-to-br from-pink-600 via-rose-500 to-rose-700 text-white rounded-lg p-1.5 flex flex-col justify-between shrink-0 select-none shadow">
-                            <span class="text-[7px] font-black uppercase text-rose-100 tracking-wider">EXAM</span>
-                            <div class="w-full h-0.5 bg-white/20"></div>
-                            <span class="text-[9px] font-black tracking-tight leading-tight">${p.year}</span>
-                          </div>
-
-                          <div class="flex-grow min-w-0 flex flex-col justify-between h-14">
-                            <div>
-                              <h4 class="font-extrabold text-[11px] text-slate-950 dark:text-white truncate leading-snug">
-                                ${p.year} - ${getSubjectDisplayName(p.subject, lang)}
-                              </h4>
-                              <div class="flex flex-wrap gap-1 mt-1">
-                                <span class="bg-pink-100 text-pink-800 dark:bg-neon-pink/10 dark:text-neon-pink text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded-md leading-none uppercase">
-                                  ${p.examType}
-                                </span>
-                                <span class="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-350 text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded-md leading-none uppercase truncate max-w-[100px]">
-                                  ${getSubjectDisplayName(p.subject, lang)}
-                                </span>
-                              </div>
-                            </div>
-
-                            <button class="pdf-trigger-btn flex items-center space-x-1 text-blue-600 dark:text-neon-cyan hover:underline text-[9px] font-black self-start" data-url="${p.pdfUrl}" data-title="${p.year} ${getSubjectDisplayName(p.subject, lang)}">
-                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                              </svg>
-                              <span>${t.viewDoc}</span>
-                            </button>
-                          </div>
-                        </div>
-                      `).join('')}
+                      <span class="inline-flex items-center px-3 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-neon-purple/20 text-neon-purple">
+                        Coming Soon / விரைவில்
+                      </span>
                     </div>
                   </div>
                 ` : currentTab === 'videos' ? `
