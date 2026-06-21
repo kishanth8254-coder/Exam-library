@@ -93,7 +93,22 @@
     <script type="module">
       // Load standard production-ready Firebase client packages directly via Google static Web CDNs
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import { initializeFirestore, collection, getDocs, doc, getDocFromServer } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+      import { 
+        initializeFirestore, 
+        collection, 
+        getDocs, 
+        doc, 
+        setDoc, 
+        deleteDoc, 
+        serverTimestamp 
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+      import { 
+        getAuth, 
+        signInWithEmailAndPassword, 
+        signOut, 
+        onAuthStateChanged, 
+        createUserWithEmailAndPassword 
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
       // --- Static High-Quality Fallback Data Bases ---
       const DEFAULT_BOOKS = [
@@ -353,6 +368,22 @@
       let activePdfTitle = null;
       let contactSuccess = false;
 
+      // Authenticated User & Admin States
+      let db = null;
+      let auth = null;
+      let currentUser = null;
+      let currentUserEmail = null;
+      let isAdminUser = false;
+      let authInitialized = false;
+      let loginError = null;
+      let adminStatusMessage = null;
+      let isRegistering = false; // Toggle between login and register
+      let categories = [
+        { id: 'cat-history', name: 'வரலாறு | History' },
+        { id: 'cat-science', name: 'விஞ்ஞானம் | Science' },
+        { id: 'cat-maths', name: 'கணிதம் | Mathematics' }
+      ];
+
       // --- Database Mapper Helpers ---
       function getSubjectDisplayName(subjectInput, currentLang) {
         if (!subjectInput) return '';
@@ -485,19 +516,36 @@
         setInterval(updateTime, 10000);
       }
 
-      // --- Dynamic Firestore Syncer (With CORS + offline fallback protection) ---
+      // --- Dynamic Firestore Syncer (With Auth, Categories, and DB Mutators) ---
       async function syncData() {
         try {
-          // Dynamic Loading logic from the standard app config file
           const response = await fetch('./firebase-applet-config.json');
           if (!response.ok) throw new Error('Unresolved local file config');
           const firebaseConfig = await response.json();
           
           const app = initializeApp(firebaseConfig);
-          // Establish long-polling to work seamlessly in standard browser tabs without sandbox blocks
-          const db = initializeFirestore(app, {
+          
+          db = initializeFirestore(app, {
             experimentalForceLongPolling: true,
           }, firebaseConfig.firestoreDatabaseId);
+
+          auth = getAuth(app);
+
+          if (!authInitialized) {
+            authInitialized = true;
+            onAuthStateChanged(auth, (user) => {
+              if (user) {
+                currentUser = user;
+                currentUserEmail = user.email;
+                isAdminUser = (user.email === 'kishanth8254@gmail.com');
+              } else {
+                currentUser = null;
+                currentUserEmail = null;
+                isAdminUser = false;
+              }
+              renderApp();
+            });
+          }
 
           // Sync Books
           try {
@@ -528,17 +576,210 @@
             });
             if (fVideos.length > 0) {
               videos = fVideos;
-              activeVideoId = videos[0].youtubeId;
-              activeVideoTitle = videos[0].title;
             }
           } catch(e) { console.log('Could not load videos from Firestore:', e); }
 
+          // Sync Categories
+          try {
+            const catSnap = await getDocs(collection(db, 'categories'));
+            const fCat = [];
+            catSnap.forEach((doc) => {
+              fCat.push({ id: doc.id, ...doc.data() });
+            });
+            if (fCat.length > 0) categories = fCat;
+          } catch(e) { console.log('Could not load categories:', e); }
+
         } catch (err) {
-          console.warn('Running completely offline or from direct local HTML file. Loaded built-in textbooks and exam assets successfully!', err);
+          console.warn('Running completely offline or from direct local HTML file.', err);
         }
 
         renderApp();
       }
+
+      // --- Database Operations exposed to window for event inline calls ---
+      window.addBookToDB = async (title, grade, subject, pdfUrl) => {
+        if (!isAdminUser) return alert('Unauthorized access');
+        try {
+          const id = 'book-' + Date.now();
+          await setDoc(doc(db, 'books', id), {
+            id,
+            title,
+            grade,
+            subject,
+            pdfUrl,
+            createdAt: serverTimestamp()
+          });
+          adminStatusMessage = 'Book added successfully!';
+          await syncData();
+        } catch(e) {
+          adminStatusMessage = 'Error: ' + e.message;
+          renderApp();
+        }
+      };
+
+      window.deleteBookFromDB = async (id) => {
+        if (!isAdminUser) return alert('Unauthorized access');
+        try {
+          await deleteDoc(doc(db, 'books', id));
+          adminStatusMessage = 'Book deleted successfully!';
+          await syncData();
+        } catch(e) {
+          adminStatusMessage = 'Error: ' + e.message;
+          renderApp();
+        }
+      };
+
+      window.addPastPaperToDB = async (year, examType, subject, pdfUrl) => {
+        if (!isAdminUser) return alert('Unauthorized access');
+        try {
+          const id = 'paper-' + Date.now();
+          await setDoc(doc(db, 'pastPapers', id), {
+            id,
+            year,
+            examType,
+            subject,
+            pdfUrl,
+            createdAt: serverTimestamp()
+          });
+          adminStatusMessage = 'Past Paper added successfully!';
+          await syncData();
+        } catch(e) {
+          adminStatusMessage = 'Error: ' + e.message;
+          renderApp();
+        }
+      };
+
+      window.deletePastPaperFromDB = async (id) => {
+        if (!isAdminUser) return alert('Unauthorized access');
+        try {
+          await deleteDoc(doc(db, 'pastPapers', id));
+          adminStatusMessage = 'Past Paper deleted successfully!';
+          await syncData();
+        } catch(e) {
+          adminStatusMessage = 'Error: ' + e.message;
+          renderApp();
+        }
+      };
+
+      window.addVideoToDB = async (title, lessonName, grade, subject, youtubeId, category) => {
+        if (!isAdminUser) return alert('Unauthorized access');
+        try {
+          const id = 'vid-' + Date.now();
+          await setDoc(doc(db, 'videos', id), {
+            id,
+            title,
+            lessonName,
+            grade,
+            subject,
+            youtubeId,
+            category,
+            createdAt: serverTimestamp()
+          });
+          adminStatusMessage = 'Video lesson added successfully!';
+          await syncData();
+        } catch(e) {
+          adminStatusMessage = 'Error: ' + e.message;
+          renderApp();
+        }
+      };
+
+      window.deleteVideoFromDB = async (id) => {
+        if (!isAdminUser) return alert('Unauthorized access');
+        try {
+          await deleteDoc(doc(db, 'videos', id));
+          adminStatusMessage = 'Video lesson deleted successfully!';
+          await syncData();
+        } catch(e) {
+          adminStatusMessage = 'Error: ' + e.message;
+          renderApp();
+        }
+      };
+
+      window.addCategoryToDB = async (name) => {
+        if (!isAdminUser) return alert('Unauthorized access');
+        try {
+          const id = 'cat-' + Date.now();
+          await setDoc(doc(db, 'categories', id), {
+            id,
+            name,
+            createdAt: serverTimestamp()
+          });
+          adminStatusMessage = 'Category added successfully!';
+          await syncData();
+        } catch(e) {
+          adminStatusMessage = 'Error: ' + e.message;
+          renderApp();
+        }
+      };
+
+      window.deleteCategoryFromDB = async (id) => {
+        if (!isAdminUser) return alert('Unauthorized access');
+        try {
+          await deleteDoc(doc(db, 'categories', id));
+          adminStatusMessage = 'Category deleted successfully!';
+          await syncData();
+        } catch(e) {
+          adminStatusMessage = 'Error: ' + e.message;
+          renderApp();
+        }
+      };
+
+      // --- Authentication helpers ---
+      window.handleUserLogin = async (email, password) => {
+        loginError = null;
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          window.location.hash = '#/admin';
+        } catch(e) {
+          loginError = 'உள்நுழைய முடியவில்லை: ' + (e.code === 'auth/user-not-found' ? 'பயனர் கணக்கு இல்லை' : e.message);
+          renderApp();
+        }
+      };
+
+      window.handleUserRegister = async (email, password) => {
+        loginError = null;
+        try {
+          await createUserWithEmailAndPassword(auth, email, password);
+          window.location.hash = '#/admin';
+        } catch(e) {
+          loginError = 'கணக்கு உருவாக்க முடியவில்லை: ' + e.message;
+          renderApp();
+        }
+      };
+
+      window.handleUserSignOut = async () => {
+        try {
+          await signOut(auth);
+          window.location.hash = '#/login';
+        } catch(e) {
+          console.error(e);
+        }
+      };
+
+      // --- Hash Router router handling URLs dynamically ---
+      function handleRoute() {
+        const hash = window.location.hash;
+        if (hash === '#/books' || hash.startsWith('#/books')) {
+          currentTab = 'books';
+        } else if (hash === '#/papers' || hash.startsWith('#/papers')) {
+          currentTab = 'papers';
+        } else if (hash === '#/videos' || hash.startsWith('#/videos')) {
+          currentTab = 'videos';
+        } else if (hash === '#/about' || hash.startsWith('#/about')) {
+          currentTab = 'about';
+        } else if (hash === '#/contact' || hash.startsWith('#/contact')) {
+          currentTab = 'contact';
+        } else if (hash === '#/login' || hash.startsWith('#/login')) {
+          currentTab = 'login';
+        } else if (hash === '#/admin' || hash.startsWith('#/admin')) {
+          currentTab = 'admin';
+        } else {
+          currentTab = 'home';
+        }
+        renderApp();
+      }
+
+      window.addEventListener('hashchange', handleRoute);
 
       // --- Main Render Engine ---
       function renderApp() {
@@ -667,6 +908,14 @@
                       </svg>
                       <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.contact}</span>
                     </button>
+
+                    <!-- Admin Desk Access btn -->
+                    <button class="nav-tab-admin w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 cursor-pointer ${(currentTab === 'admin' || currentTab === 'login') ? 'bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan font-extrabold border border-blue-200/40 dark:border-neon-cyan/25' : 'text-slate-450 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'}" style="width: 100%;">
+                      <svg class="w-4 h-4 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                      </svg>
+                      <span class="text-[10px] uppercase font-black tracking-wider leading-none">${currentUser ? (lang === 'ta' ? 'நிர்வாகம் / Admin' : 'Admin Area') : (lang === 'ta' ? 'உள்நுழை / Login' : 'Login / Register')}</span>
+                    </button>
                   </nav>
                 </div>
 
@@ -750,6 +999,13 @@
                         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                       </svg>
                     `}
+                  </button>
+
+                  <!-- Admin Mobile Lock btn -->
+                  <button class="nav-tab-admin p-1 px-1.5 text-slate-500 hover:text-slate-850 dark:text-slate-400 dark:hover:text-white rounded-lg bg-slate-150 dark:bg-slate-900 border dark:border-slate-850 hover:bg-slate-200 transition">
+                    <svg class="w-3.5 h-3.5 ${currentUser ? 'text-neon-cyan animate-pulse' : 'text-amber-500'}" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2500/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -835,7 +1091,7 @@
                       <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-neon-pink/10 transition flex items-start space-x-3">
                         <div class="p-2.5 bg-pink-100 dark:bg-neon-pink/10 text-pink-600 dark:text-neon-pink rounded-xl shrink-0">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 011.414 0 3.42 3.42 0 001.946.806 3.42 3.42 0 010 1.946 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00.806 1.946 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946.806 3.42 3.42 0 010-1.946 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-1.414z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 011.414 0 3.42 3.42 0 001.946.806 3.42 3.42 0 010 1.946 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00.806 1.946 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946.806 3.4"></path>
                           </svg>
                         </div>
                         <div>
@@ -952,30 +1208,95 @@
                   </div>
                 ` : currentTab === 'papers' ? `
                   <!-- TAB 3: PAST PAPERS -->
-                  <div class="space-y-4">
+                  <div class="space-y-4 animate-in fade-in duration-300">
                     <div class="space-y-1">
                       <h2 class="text-base font-black text-slate-950 dark:text-white tracking-tight uppercase">${t.papersTitle}</h2>
                       <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">${t.papersDesc}</p>
                     </div>
 
-                    <!-- Beautiful Educational Lock / Coming Soon Layout -->
-                    <div class="p-8 text-center bg-white dark:bg-[#111827] rounded-2xl border border-dashed border-slate-300 dark:border-neon-purple/20 flex flex-col items-center justify-center space-y-4 py-12 shadow-sm animate-in fade-in duration-300">
-                      <div class="p-3.5 bg-purple-100 dark:bg-neon-purple/10 text-purple-600 dark:text-neon-purple rounded-full shrink-0">
-                        <svg class="w-8 h-8 animate-pulse text-glow-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>
+                    <!-- Past Papers Search + Filter Filters section -->
+                    <div class="bg-white dark:bg-[#111827] p-3.5 rounded-xl border border-slate-200 dark:border-neon-purple/15 space-y-3 shadow-sm">
+                      <div class="relative">
+                        <input 
+                          type="text"
+                          id="paper-filter-search"
+                          placeholder="${lang === 'ta' ? 'வினாத்தாளைத் தேடுக... (ஆண்டு, பாடம், பரீட்சை)' : 'Search past papers... (e.g. 2023, Science, O/L)'}"
+                          value="${searchKeyword}"
+                          class="w-full pl-3 pr-3 py-2 rounded-lg text-[10px] placeholder-slate-400 bg-slate-100 dark:bg-slate-950 font-bold text-slate-950 dark:text-white border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-pink"
+                        />
                       </div>
-                      <div class="space-y-1.5 max-w-sm">
-                        <h3 class="font-black text-sm text-slate-950 dark:text-white uppercase tracking-wider">
-                          ${lang === 'ta' ? 'கடந்த கால வினாத்தாள்கள் - விரைவில்!' : 'Past Papers - Coming Soon!'}
-                        </h3>
-                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                          ${lang === 'ta' ? 'பள்ளித் தவணைப் பரீட்சை வினாத்தாள்கள், மாகாணக் கல்வித் திணைக்கள மாதிரித் தாள்கள், க.பொ.த (O/L, A/L) கடந்தகால வினாத்தாள்கள் ஆகியவை விரைவில் உங்களது பயிற்சிக்காக இப்பக்கத்தில் பதிவேற்றப்படும்.' : 'School term assessment papers, provincial evaluations, and national past exam papers are currently being formatted and will be uploaded here soon.'}
-                        </p>
+
+                      <div class="grid grid-cols-2 gap-2">
+                        <div>
+                          <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${lang === 'ta' ? 'பரீட்சை வகை' : 'Exam Type'}</label>
+                          <select id="paper-examtype-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                            <option value="All" ${selectedExamType === 'All' ? 'selected' : ''}>${lang === 'ta' ? 'அனைத்து பரீட்சைகளும்' : 'All Exams'}</option>
+                            <option value="O/L" ${selectedExamType === 'O/L' ? 'selected' : ''}>G.C.E. O/L</option>
+                            <option value="A/L" ${selectedExamType === 'A/L' ? 'selected' : ''}>G.C.E. A/L</option>
+                            <option value="Term Test" ${selectedExamType === 'Term Test' ? 'selected' : ''}>${lang === 'ta' ? 'தவணைப் பரீட்சை' : 'Term Assessment'}</option>
+                            <option value="Province Exam" ${selectedExamType === 'Province Exam' ? 'selected' : ''}>${lang === 'ta' ? 'மாகாணப் பரீட்சை' : 'Provincial Exam'}</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterBySubject}</label>
+                          <select id="paper-subject-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                            <option value="All" ${selectedSubject === 'All' ? 'selected' : ''}>${t.allSubjects}</option>
+                            ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}" ${selectedSubject === subKey ? 'selected' : ''}>${getSubjectDisplayName(subKey, lang)}</option>`).join('')}
+                          </select>
+                        </div>
                       </div>
-                      <span class="inline-flex items-center px-3 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-neon-purple/20 text-neon-purple">
-                        Coming Soon / விரைவில்
-                      </span>
+                    </div>
+
+                    <!-- Past Papers List Grids -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                      ${filteredPapers.length === 0 ? `
+                        <div class="col-span-2 p-8 text-center bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-900">
+                          <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">${lang === 'ta' ? 'வினாத்தாள்கள் எதுவும் காணப்படவில்லை.' : 'No past papers found matching your criteria.'}</p>
+                        </div>
+                      ` : filteredPapers.map((p) => `
+                        <div class="bg-white dark:bg-[#111827] rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm p-3.5 flex items-start space-x-3 hover:scale-[1.01] transition duration-250">
+                          <div class="w-11 h-14 bg-gradient-to-br from-emerald-600 via-teal-500 to-emerald-700 text-white rounded-lg p-1.5 flex flex-col justify-between shrink-0 select-none shadow">
+                            <span class="text-[7.5px] font-black uppercase text-emerald-200 tracking-wider">DOC</span>
+                            <div class="w-full h-0.5 bg-white/20"></div>
+                            <span class="text-[8px] font-black tracking-tighter leading-none">${p.year}</span>
+                          </div>
+
+                          <div class="flex-grow min-w-0 flex flex-col justify-between h-14">
+                            <div>
+                              <h4 class="font-extrabold text-[11px] text-slate-950 dark:text-white truncate leading-snug">
+                                ${translateTitleDynamically(getSubjectDisplayName(p.subject, lang) + ' Past Paper ' + p.year, lang)}
+                              </h4>
+                              <div class="flex flex-wrap gap-1 mt-1">
+                                <span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-400 text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded-md leading-none uppercase">
+                                  ${p.examType}
+                                </span>
+                                <span class="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-350 text-[8px] font-black tracking-wide px-1.5 py-0.5 rounded-md leading-none uppercase truncate max-w-[100px]">
+                                  ${getSubjectDisplayName(p.subject, lang)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                              <button class="pdf-trigger-btn flex items-center space-x-1 text-blue-600 dark:text-neon-cyan hover:underline text-[9px] font-black self-start" data-url="${p.pdfUrl}" data-title="${getSubjectDisplayName(p.subject, lang)} Past Paper ${p.year}">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <span>${t.downloadPdf}</span>
+                              </button>
+
+                              ${isAdminUser ? `
+                                <button onclick="deletePastPaperFromDB('${p.id}')" class="text-red-500 hover:text-red-700 text-[8px] font-black uppercase flex items-center space-x-1">
+                                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                  </svg>
+                                  <span>${lang === 'ta' ? 'நீக்கு' : 'Delete'}</span>
+                                </button>
+                              ` : ''}
+                            </div>
+                          </div>
+                        </div>
+                      `).join('')}
                     </div>
                   </div>
                 ` : currentTab === 'videos' ? `
@@ -1191,6 +1512,286 @@
                       </div>
                     </section>
                   </div>
+                ` : currentTab === 'login' ? `
+                  <!-- TAB 7: LOGIN SCREEN -->
+                  <div class="max-w-md mx-auto space-y-5 animate-in fade-in duration-350 py-4">
+                    <div class="space-y-1 text-center">
+                      <h2 class="text-base font-black text-slate-950 dark:text-white tracking-tight uppercase">
+                        ${lang === 'ta' ? 'அதிகாரப்பூர்வ உள்நுழைவு' : 'Official Authentication'}
+                      </h2>
+                      <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">
+                        ${lang === 'ta' ? 'நிர்வாக மற்றும் பயனர் கணக்கு மேலாண்மை' : 'Admin & User Account Management'}
+                      </p>
+                    </div>
+
+                    <div class="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-neon-purple/20 shadow-md space-y-4">
+                      ${loginError ? `
+                        <div class="p-3 bg-red-100 text-red-850 dark:bg-red-950/30 dark:text-red-400 border border-red-200 dark:border-red-900/50 rounded-xl text-[9.5px] font-bold text-center leading-snug">
+                          ${loginError}
+                        </div>
+                      ` : ''}
+
+                      <form id="auth-form-submit" class="space-y-3.5" onsubmit="return false;">
+                        <div>
+                          <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">${lang === 'ta' ? 'மின்னஞ்சல்' : 'Email Address'}</label>
+                          <input 
+                            type="email" 
+                            id="auth-email" 
+                            required 
+                            placeholder="kishanth8254@gmail.com" 
+                            class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                          />
+                        </div>
+
+                        <div>
+                          <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">${lang === 'ta' ? 'கடவுச்சொல்' : 'Password'}</label>
+                          <input 
+                            type="password" 
+                            id="auth-password" 
+                            required 
+                            placeholder="••••••••" 
+                            class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                          />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                          <button type="submit" id="auth-login-btn" class="py-2.5 bg-gradient-to-r from-neon-purple to-neon-cyan hover:scale-[1.01] text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-lg transition-all shadow-sm">
+                            ${lang === 'ta' ? 'உள்நுழை' : 'Log In'}
+                          </button>
+                          <button type="button" id="auth-register-btn" class="py-2.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-white border border-slate-250 dark:border-slate-850 hover:scale-[1.01] font-black text-[10px] uppercase tracking-wider rounded-lg transition-all">
+                            ${lang === 'ta' ? 'பதிவு செய்' : 'Register'}
+                          </button>
+                        </div>
+                      </form>
+
+                      <div class="pt-2 border-t border-slate-150 dark:border-slate-850/50 text-center">
+                        <span class="text-[8.5px] font-bold text-slate-400 dark:text-slate-500">
+                          ${lang === 'ta' ? 'நிர்வாக மின்னஞ்சல்: kishanth8254@gmail.com' : 'Bootstrapped Admin: kishanth8254@gmail.com'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ` : currentTab === 'admin' ? `
+                  <!-- TAB 8: ADMIN CONTROL PANEL -->
+                  <div class="space-y-5 animate-in fade-in duration-300 py-2">
+                    <div class="flex items-center justify-between border-b dark:border-slate-850/60 pb-3 flex-wrap gap-2">
+                      <div class="space-y-0.5">
+                        <h2 class="text-base font-black text-slate-950 dark:text-white tracking-tight uppercase">
+                          ${lang === 'ta' ? 'நிர்வாகக் கட்டுப்பாட்டுப் பலகை' : 'Admin Control Panel'}
+                        </h2>
+                        <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">
+                          ${currentUserEmail ? (lang === 'ta' ? `கணக்கு: ${currentUserEmail}` : `Signed in as: ${currentUserEmail}`) : ''}
+                        </p>
+                      </div>
+                      <button onclick="handleUserSignOut()" class="p-1.5 px-3 bg-red-100 border border-red-200 hover:bg-red-200 text-red-600 dark:bg-red-950/20 dark:border-red-900/60 dark:text-red-400 transition rounded-lg text-[9px] font-black uppercase">
+                        ${lang === 'ta' ? 'வெளியேறு' : 'Logout'}
+                      </button>
+                    </div>
+
+                    ${adminStatusMessage ? `
+                      <div class="p-3 bg-blue-100 dark:bg-neon-cyan/10 border border-blue-200 dark:border-neon-cyan/30 rounded-xl text-center flex items-center justify-between">
+                        <span class="text-[9.5px] font-black text-blue-800 dark:text-neon-cyan">${adminStatusMessage}</span>
+                        <button onclick="adminStatusMessage = null; renderApp();" class="text-slate-400 hover:text-slate-600 text-[9px] font-black">✕</button>
+                      </div>
+                    ` : ''}
+
+                    ${!isAdminUser ? `
+                      <!-- Non-admin screen warning -->
+                      <div class="bg-amber-50 dark:bg-amber-500/5 border border-amber-250 dark:border-amber-500/25 p-5 rounded-2xl text-center space-y-3.5 max-w-sm mx-auto">
+                        <div class="mx-auto w-10 h-10 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center">
+                          <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                          </svg>
+                        </div>
+                        <div class="space-y-1">
+                          <h4 class="font-black text-[11px] text-amber-850 dark:text-amber-400 uppercase tracking-wider">
+                            ${lang === 'ta' ? 'அனுமதி மறுக்கப்பட்டுள்ளது!' : 'Administrative Privileges Required'}
+                          </h4>
+                          <p class="text-[9.5px] text-slate-500 dark:text-slate-400 font-semibold leading-relaxed">
+                            ${lang === 'ta' ? 'நீங்கள் வெற்றிகரமாக உள்நுழைந்துள்ளீர்கள், ஆனால் இந்த வளங்களை மாற்றுவதற்கு உங்களிடம் போதுமான அனுமதிகள் இல்லை.' : 'You have authenticated successfully, however only bootstrapped platform administrators are granted database mutation privileges.'}
+                          </p>
+                        </div>
+                        <div class="bg-slate-150 dark:bg-slate-900 p-2.5 rounded-xl text-center">
+                          <span class="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-0.5">${lang === 'ta' ? 'தேவைப்படும் மின்னஞ்சல்' : 'Admin standard account:'}</span>
+                          <span class="text-[10px] font-black text-slate-800 dark:text-white">kishanth8254@gmail.com</span>
+                        </div>
+                      </div>
+                    ` : `
+                      <!-- Robust Grid Forms for adding items -->
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        
+                        <!-- Col 1: Add Educational Book Form -->
+                        <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-200 dark:border-slate-850 shadow-sm space-y-4">
+                          <div class="flex items-center space-x-2 border-b dark:border-slate-800/80 pb-2">
+                            <div class="p-1 px-1.5 bg-blue-100 dark:bg-neon-purple/15 text-blue-600 dark:text-neon-purple rounded uppercase font-black text-[8px] tracking-wide">Book</div>
+                            <h3 class="font-extrabold text-[11px] text-slate-900 dark:text-white uppercase">${lang === 'ta' ? 'பாடப்புத்தகம் சேர்' : 'Add Textbook'}</h3>
+                          </div>
+
+                          <form id="admin-add-book-form" class="space-y-3" onsubmit="return false;">
+                            <div>
+                              <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'புத்தகத் தலைப்பு' : 'Book Title'}</label>
+                              <input required type="text" id="add-book-title" placeholder="தரம் 9 கணிதம்" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none" />
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'தரம்' : 'Grade'}</label>
+                                <select id="add-book-grade" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                                  ${GRADES.map(g => `<option value="${g}">${lang === 'ta' ? (TAMIL_MAP[g] || g) : g}</option>`).join('')}
+                                </select>
+                              </div>
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'பாடம்' : 'Subject'}</label>
+                                <select id="add-book-subject" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                                  ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}">${getSubjectDisplayName(subKey, lang)}</option>`).join('')}
+                                </select>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'பதிவிறக்க PDF இணைப்பு (URL)' : 'PDF Download Link (URL)'}</label>
+                              <input required type="url" id="add-book-pdfurl" placeholder="https://drive.google.com/..." class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none" />
+                            </div>
+
+                            <button type="submit" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-[9px] uppercase tracking-wider rounded-lg transition-all shadow">
+                              ${lang === 'ta' ? 'பாடப்புத்தகத்தைச் சேர்' : 'Submit Book'}
+                            </button>
+                          </form>
+                        </div>
+
+
+                        <!-- Col 2: Add Past Papers Form -->
+                        <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-200 dark:border-slate-850 shadow-sm space-y-4">
+                          <div class="flex items-center space-x-2 border-b dark:border-slate-800/80 pb-2">
+                            <div class="p-1 px-1.5 bg-emerald-100 dark:bg-neon-cyan/15 text-emerald-600 dark:text-neon-cyan rounded uppercase font-black text-[8px] tracking-wide">Paper</div>
+                            <h3 class="font-extrabold text-[11px] text-slate-900 dark:text-white uppercase">${lang === 'ta' ? 'வினாத்தாள் சேர்' : 'Add Past Paper'}</h3>
+                          </div>
+
+                          <form id="admin-add-paper-form" class="space-y-3" onsubmit="return false;">
+                            <div class="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'ஆண்டு' : 'Year'}</label>
+                                <input required type="number" id="add-paper-year" min="2000" max="2030" placeholder="2023" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none" />
+                              </div>
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'தேர்வு வகை' : 'Exam Type'}</label>
+                                <select id="add-paper-examtype" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                                  <option value="O/L">G.C.E. O/L</option>
+                                  <option value="A/L">G.C.E. A/L</option>
+                                  <option value="Term Test">${lang === 'ta' ? 'தவணைப் பரீட்சை' : 'Term Assessment'}</option>
+                                  <option value="Province Exam">${lang === 'ta' ? 'மாகாணப் பரீட்சை' : 'Provincial Exam'}</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'பாடம்' : 'Subject'}</label>
+                              <select id="add-paper-subject" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                                ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}">${getSubjectDisplayName(subKey, lang)}</option>`).join('')}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'பதிவிறக்க PDF இணைப்பு (URL)' : 'PDF Download Link (URL)'}</label>
+                              <input required type="url" id="add-paper-pdfurl" placeholder="https://drive.google.com/..." class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none" />
+                            </div>
+
+                            <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[9px] uppercase tracking-wider rounded-lg transition-all shadow">
+                              ${lang === 'ta' ? 'வினாத்தாளைச் சேர்' : 'Submit Past Paper'}
+                            </button>
+                          </form>
+                        </div>
+
+
+                        <!-- Col 3: Add Video Lesson Form -->
+                        <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-200 dark:border-slate-850 shadow-sm space-y-4">
+                          <div class="flex items-center space-x-2 border-b dark:border-slate-800/80 pb-2">
+                            <div class="p-1 px-1.5 bg-red-100 dark:bg-neon-pink/15 text-red-600 dark:text-neon-pink rounded uppercase font-black text-[8px] tracking-wide">Video</div>
+                            <h3 class="font-extrabold text-[11px] text-slate-900 dark:text-white uppercase">${lang === 'ta' ? 'காணொளிப் பாடம் சேர்' : 'Add Youtube Video'}</h3>
+                          </div>
+
+                          <form id="admin-add-video-form" class="space-y-3" onsubmit="return false;">
+                            <div class="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'காணொளித் தலைப்பு' : 'Video Title'}</label>
+                                <input required type="text" id="add-vid-title" placeholder="இலங்கையில் ஒல்லாந்தர் வருகை" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none" />
+                              </div>
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-555 mb-1">${lang === 'ta' ? 'பாடம்/விலக்கம்' : 'Lesson Chapter Name'}</label>
+                                <input required type="text" id="add-vid-lesson" placeholder="அத்தியாயம் 2" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none" />
+                              </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'தரம்' : 'Grade'}</label>
+                                <select id="add-vid-grade" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                                  ${GRADES.map(g => `<option value="${g}">${lang === 'ta' ? (TAMIL_MAP[g] || g) : g}</option>`).join('')}
+                                </select>
+                              </div>
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'பாடம்' : 'Subject'}</label>
+                                <select id="add-vid-subject" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                                  ${Object.keys(SUBJECT_MAP).map(subKey => `<option value="${subKey}">${getSubjectDisplayName(subKey, lang)}</option>`).join('')}
+                                </select>
+                              </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'யூடியூப் வீடியோ ID/URL' : 'YouTube ID/Link'}</label>
+                                <input required type="text" id="add-vid-ytid" placeholder="NAG97tRkZ2Y" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none" />
+                              </div>
+                              <div>
+                                <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'வகைப்பாடு (Category)' : 'Video Category'}</label>
+                                <select id="add-vid-category" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                                  <option value="General">${lang === 'ta' ? 'பொதுவானது' : 'General'}</option>
+                                  ${categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('')}
+                                </select>
+                              </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white font-black text-[9px] uppercase tracking-wider rounded-lg transition-all shadow">
+                              ${lang === 'ta' ? 'காணொளியைச் சேர்' : 'Submit Video'}
+                            </button>
+                          </form>
+                        </div>
+
+
+                        <!-- Col 4: Add New Category Form -->
+                        <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-200 dark:border-slate-850 shadow-sm space-y-4">
+                          <div class="flex items-center space-x-2 border-b dark:border-slate-800/80 pb-2">
+                            <div class="p-1 px-1.5 bg-yellow-1050 dark:bg-neon-pink/15 text-yellow-750 dark:text-neon-pink rounded uppercase font-black text-[8px] tracking-wide">Category</div>
+                            <h3 class="font-extrabold text-[11px] text-slate-900 dark:text-white uppercase">${lang === 'ta' ? 'வகைப்பாடு சேர்' : 'Add Category'}</h3>
+                          </div>
+
+                          <form id="admin-add-category-form" class="space-y-3" onsubmit="return false;">
+                            <div>
+                              <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === 'ta' ? 'வகைப்பாட்டுப் பெயர்' : 'Category Name'}</label>
+                              <input required type="text" id="add-category-name" placeholder="வரலாறு பாடம்" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none" />
+                            </div>
+
+                            <button type="submit" class="w-full py-2 bg-amber-500 hover:bg-amber-600 text-white font-black text-[9px] uppercase tracking-wider rounded-lg transition-all shadow">
+                              ${lang === 'ta' ? 'வகையைச் சேர்' : 'Create Category'}
+                            </button>
+                          </form>
+
+                          <div class="pt-2">
+                            <h4 class="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 mb-1">${lang === 'ta' ? 'வகைகள்:' : 'Categories:'}</h4>
+                            <div class="flex flex-wrap gap-1 max-h-24 overflow-y-auto pt-1 no-scrollbar">
+                              ${categories.length === 0 ? `<span class="text-[8px] text-slate-400 font-bold">No categories yet.</span>` : categories.map(cat => `
+                                <div class="inline-flex items-center space-x-1 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-md text-[8.5px] font-bold text-slate-750 dark:text-slate-350">
+                                  <span>${cat.name}</span>
+                                  <button onclick="deleteCategoryFromDB('${cat.id}')" class="text-red-500 hover:text-red-700 font-black cursor-pointer px-1">✕</button>
+                                </div>
+                              `).join('')}
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    `}
+                  </div>
                 ` : ''}
                 
               </div>
@@ -1322,16 +1923,15 @@
 
       // --- Interactive Event Binders ---
       function bindEvents() {
-        const tabs = ['home', 'books', 'papers', 'videos', 'about', 'contact'];
+        const tabs = ['home', 'books', 'papers', 'videos', 'about', 'contact', 'login', 'admin'];
         tabs.forEach((tab) => {
           document.querySelectorAll(`.nav-tab-${tab}, #nav-tab-${tab}`).forEach((btn) => {
             btn.onclick = () => {
-              currentTab = tab;
+              window.location.hash = '#/' + tab;
               contactSuccess = false;
               if (tab !== 'books' && tab !== 'papers' && tab !== 'videos') {
                 searchKeyword = '';
               }
-              renderApp();
             };
           });
         });
@@ -1524,11 +2124,94 @@
             renderApp();
           };
         }
+
+        // --- Administrative & Authentication form binders ---
+        const authLoginBtn = document.getElementById('auth-login-btn');
+        if (authLoginBtn) {
+          authLoginBtn.onclick = async (e) => {
+            e.preventDefault();
+            const emailInput = document.getElementById('auth-email');
+            const pwdInput = document.getElementById('auth-password');
+            if (emailInput && pwdInput && emailInput.value && pwdInput.value) {
+              await handleUserLogin(emailInput.value, pwdInput.value);
+            } else {
+              alert('மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிடவும் / Please enter email and password');
+            }
+          };
+        }
+
+        const authRegisterBtn = document.getElementById('auth-register-btn');
+        if (authRegisterBtn) {
+          authRegisterBtn.onclick = async (e) => {
+            e.preventDefault();
+            const emailInput = document.getElementById('auth-email');
+            const pwdInput = document.getElementById('auth-password');
+            if (emailInput && pwdInput && emailInput.value && pwdInput.value) {
+              await handleUserRegister(emailInput.value, pwdInput.value);
+            } else {
+              alert('மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிடவும் / Please enter email and password');
+            }
+          };
+        }
+
+        const addBookForm = document.getElementById('admin-add-book-form');
+        if (addBookForm) {
+          addBookForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('add-book-title').value;
+            const grade = document.getElementById('add-book-grade').value;
+            const subject = document.getElementById('add-book-subject').value;
+            const pdfUrl = document.getElementById('add-book-pdfurl').value;
+            await addBookToDB(title, grade, subject, pdfUrl);
+          };
+        }
+
+        const addPaperForm = document.getElementById('admin-add-paper-form');
+        if (addPaperForm) {
+          addPaperForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const year = parseInt(document.getElementById('add-paper-year').value);
+            const examType = document.getElementById('add-paper-examtype').value;
+            const subject = document.getElementById('add-paper-subject').value;
+            const pdfUrl = document.getElementById('add-paper-pdfurl').value;
+            await addPastPaperToDB(year, examType, subject, pdfUrl);
+          };
+        }
+
+        const addVideoForm = document.getElementById('admin-add-video-form');
+        if (addVideoForm) {
+          addVideoForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('add-vid-title').value;
+            const lessonName = document.getElementById('add-vid-lesson').value;
+            const grade = document.getElementById('add-vid-grade').value;
+            const subject = document.getElementById('add-vid-subject').value;
+            let youtubeId = document.getElementById('add-vid-ytid').value;
+            const category = document.getElementById('add-vid-category').value;
+            
+            if (youtubeId.includes('v=')) {
+              youtubeId = youtubeId.split('v=')[1].split('&')[0];
+            } else if (youtubeId.includes('youtu.be/')) {
+              youtubeId = youtubeId.split('youtu.be/')[1].split('?')[0];
+            }
+            await addVideoToDB(title, lessonName, grade, subject, youtubeId, category);
+          };
+        }
+
+        const addCategoryForm = document.getElementById('admin-add-category-form');
+        if (addCategoryForm) {
+          addCategoryForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('add-category-name').value;
+            await addCategoryToDB(name);
+          };
+        }
       }
 
       // --- Initialization Boots ---
       startClock();
       syncData();
+      handleRoute();
     </script>
   </body>
 </html>

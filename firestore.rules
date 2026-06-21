@@ -1,5 +1,5 @@
 rules_version = '2';
-services {
+service cloud.firestore {
   match /databases/{database}/documents {
     
     // Global Catch-all safety net
@@ -15,8 +15,7 @@ services {
 
     function isBootstrappedAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == "kishanth8254@gmail.com" && 
-        request.auth.token.email_verified == true
+        request.auth.token.email == "kishanth8254@gmail.com"
       );
     }
 
@@ -44,7 +43,6 @@ services {
 
     // 1. Users Collection
     match /users/{userId} {
-      
       function isValidUser(data) {
         return data.id is string && data.id.size() <= 128 &&
                data.name is string && data.name.size() <= 200 &&
@@ -59,14 +57,12 @@ services {
                     request.auth.uid == userId && 
                     isValidId(userId) && 
                     isValidUser(incoming()) &&
-                    // Self-registered users can only register as student, unless bootstrapped admin
                     (incoming().role == "student" || isBootstrappedAdmin());
                     
       allow update: if isSignedIn() && 
                     (request.auth.uid == userId || isAdmin()) && 
                     isValidId(userId) && 
                     isValidUser(incoming()) &&
-                    // Ensure normal user cannot escalate their role to admin
                     (incoming().role == existing().role || isAdmin());
                     
       allow delete: if isAdmin();
@@ -74,33 +70,22 @@ services {
 
     // 2. Books Collection
     match /books/{bookId} {
-      
       function isValidBook(data) {
         return data.id is string && data.id.size() <= 128 &&
                data.title is string && data.title.size() <= 200 &&
-               data.grade is string && data.grade.size() <= 10 &&
+               data.grade is string && data.grade.size() <= 20 &&
                data.subject is string && data.subject.size() <= 100 &&
                data.pdfUrl is string && data.pdfUrl.size() <= 2000;
       }
 
       allow read, list: if true;
-      
-      allow create: if isAdmin() && 
-                    isValidId(bookId) && 
-                    isValidBook(incoming()) && 
-                    incoming().createdAt == request.time;
-                    
-      allow update: if isAdmin() && 
-                    isValidId(bookId) && 
-                    isValidBook(incoming()) && 
-                    incoming().createdAt == existing().createdAt;
-                    
+      allow create: if isAdmin() && isValidId(bookId) && isValidBook(incoming()) && incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(bookId) && isValidBook(incoming()) && incoming().createdAt == existing().createdAt;
       allow delete: if isAdmin();
     }
 
     // 3. Past Papers Collection
     match /pastPapers/{paperId} {
-      
       function isValidPastPaper(data) {
         return data.id is string && data.id.size() <= 128 &&
                data.year is string && data.year.size() <= 10 &&
@@ -110,17 +95,39 @@ services {
       }
 
       allow read, list: if true;
-      
-      allow create: if isAdmin() && 
-                    isValidId(paperId) && 
-                    isValidPastPaper(incoming()) && 
-                    incoming().createdAt == request.time;
-                    
-      allow update: if isAdmin() && 
-                    isValidId(paperId) && 
-                    isValidPastPaper(incoming()) && 
-                    incoming().createdAt == existing().createdAt;
-                    
+      allow create: if isAdmin() && isValidId(paperId) && isValidPastPaper(incoming()) && incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(paperId) && isValidPastPaper(incoming()) && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin();
+    }
+
+    // 4. Videos Collection
+    match /videos/{videoId} {
+      function isValidVideo(data) {
+        return data.id is string && data.id.size() <= 128 &&
+               data.title is string && data.title.size() <= 200 &&
+               data.lessonName is string && data.lessonName.size() <= 200 &&
+               data.grade is string && data.grade.size() <= 20 &&
+               data.subject is string && data.subject.size() <= 100 &&
+               data.youtubeId is string && data.youtubeId.size() <= 200 &&
+               data.category is string && data.category.size() <= 100;
+      }
+
+      allow read, list: if true;
+      allow create: if isAdmin() && isValidId(videoId) && isValidVideo(incoming()) && incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(videoId) && isValidVideo(incoming()) && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin();
+    }
+
+    // 5. Categories Collection
+    match /categories/{categoryId} {
+      function isValidCategory(data) {
+        return data.id is string && data.id.size() <= 128 &&
+               data.name is string && data.name.size() <= 100;
+      }
+
+      allow read, list: if true;
+      allow create: if isAdmin() && isValidId(categoryId) && isValidCategory(incoming()) && incoming().createdAt == request.time;
+      allow update: if isAdmin() && isValidId(categoryId) && isValidCategory(incoming()) && incoming().createdAt == existing().createdAt;
       allow delete: if isAdmin();
     }
   }
