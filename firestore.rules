@@ -89,7 +89,7 @@ service cloud.firestore {
       function isValidPastPaper(data) {
         return data.id is string && data.id.size() <= 128 &&
                data.year is string && data.year.size() <= 10 &&
-               data.examType is string && (data.examType == "O/L" || data.examType == "A/L") &&
+               data.examType is string && (data.examType == "O/L" || data.examType == "A/L" || data.examType == "Term Test" || data.examType == "Province Exam") &&
                data.subject is string && data.subject.size() <= 100 &&
                data.pdfUrl is string && data.pdfUrl.size() <= 2000;
       }
