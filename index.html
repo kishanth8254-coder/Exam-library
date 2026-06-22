@@ -766,6 +766,7 @@
       let adminStatusMessage = null;
       let isRegistering = false; // Toggle between login and register
       let userProfile = null; // Contains custom registration details from Firestore
+      let allUsers = []; // List of all users for admin management
       let authMode = "login"; // "login" or "register"
 
       let isEditingProfile = false;
@@ -955,6 +956,19 @@
                 } catch (e) {
                   console.log("Error loading user profile:", e);
                   userProfile = null;
+                }
+
+                if (isAdminUser) {
+                  try {
+                    const usersSnap = await getDocs(collection(db, "users"));
+                    const fUsers = [];
+                    usersSnap.forEach((doc) => {
+                      fUsers.push({ id: doc.id, ...doc.data() });
+                    });
+                    allUsers = fUsers;
+                  } catch (e) {
+                    console.log("Error loading all users:", e);
+                  }
                 }
 
                 const hash = window.location.hash;
@@ -1204,7 +1218,7 @@
         }
       };
 
-      window.handleUserRegister = async (firstName, lastName, dob, school, phone, email, password) => {
+      window.handleUserRegister = async (firstName, lastName, dob, school, phone, email, password, accountType) => {
         loginError = null;
         try {
           const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
@@ -1219,6 +1233,7 @@
               school: (school || "").trim(),
               phone: (phone || "").trim(),
               email: email.trim(),
+              accountType: accountType || "Student",
               role: user.email === "kishanth8254@gmail.com" ? "admin" : "student"
             };
             await setDoc(doc(db, "users", user.uid), profileData);
@@ -1265,6 +1280,7 @@
             id: currentUser.uid,
             email: currentUser.email,
             role: userProfile?.role || (currentUser.email === "kishanth8254@gmail.com" ? "admin" : "student"),
+            accountType: userProfile?.accountType || "Student",
             firstName: (firstName || "").trim(),
             lastName: (lastName || "").trim(),
             name: ((firstName || "").trim() + " " + (lastName || "").trim()).trim() || currentUser.email.split('@')[0],
@@ -2367,9 +2383,9 @@
                           ${userProfile?.name || (currentUserEmail ? currentUserEmail.split('@')[0] : "மாணவர்")}
                         </h3>
                         <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">${currentUserEmail}</p>
-                        <div class="flex flex-wrap justify-center md:justify-start gap-1.5 mt-2">
+                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-1.5 mt-2">
                           <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 dark:bg-neon-cyan/25 dark:text-neon-cyan rounded text-[8px] font-black tracking-wider uppercase">
-                            ${userProfile?.role === "admin" ? (lang === "ta" ? "நிர்வாகி (Admin)" : "Administrator") : (lang === "ta" ? "மாணவர் (Student)" : "Student")}
+                            ${userProfile?.accountType ? userProfile.accountType : (userProfile?.role === "admin" ? (lang === "ta" ? "நிர்வாகி (Admin)" : "Administrator") : (lang === "ta" ? "மாணவர் (Student)" : "Student"))}
                           </span>
                         </div>
                       </div>
@@ -2745,6 +2761,18 @@
                                 </div>
                               </div>
 
+                              <div>
+                                <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-450 mb-1">
+                                  ${lang === "ta" ? "பயனர் வகை" : "Account Type"} *
+                                </label>
+                                <select id="auth-reg-accountType" required class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple cursor-pointer appearance-none">
+                                  <option value="Student">${lang === "ta" ? "மாணவர்" : "Student"}</option>
+                                  <option value="Teacher">${lang === "ta" ? "ஆசிரியர்" : "Teacher"}</option>
+                                  <option value="Parent">${lang === "ta" ? "பெற்றோர்" : "Parent"}</option>
+                                  <option value="Other">${lang === "ta" ? "மற்றவர்கள்" : "Others"}</option>
+                                </select>
+                              </div>
+
                               <div class="grid grid-cols-2 gap-3">
                                 <div>
                                   <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-450 mb-1">
@@ -3071,6 +3099,44 @@
                           </div>
                         </div>
 
+                      </div>
+
+                      <!-- User Management Section -->
+                      <div class="bg-white dark:bg-[#111827] mt-5 p-4 rounded-xl border border-slate-200 dark:border-slate-850 shadow-sm space-y-4">
+                        <div class="flex items-center space-x-2 border-b dark:border-slate-800/80 pb-2">
+                          <div class="p-1 px-1.5 bg-green-100 dark:bg-neon-cyan/20 text-green-700 dark:text-neon-cyan rounded uppercase font-black text-[8px] tracking-wide">Users</div>
+                          <h3 class="font-extrabold text-[11px] text-slate-900 dark:text-white uppercase">${lang === "ta" ? "பயனர் மேலாண்மை" : "User Management"}</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                          <table class="w-full text-left border-collapse">
+                            <thead>
+                              <tr class="border-b dark:border-slate-800 text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                <th class="p-2">${lang === "ta" ? "பெயர்" : "Name"}</th>
+                                <th class="p-2">${lang === "ta" ? "மின்னஞ்சல்" : "Email"}</th>
+                                <th class="p-2">${lang === "ta" ? "பயனர் வகை" : "Type"}</th>
+                                <th class="p-2">${lang === "ta" ? "பாடசாலை" : "School"}</th>
+                                <th class="p-2">${lang === "ta" ? "பிறந்த திகதி" : "DOB"}</th>
+                                <th class="p-2">${lang === "ta" ? "தொலைபேசி எண்" : "Phone"}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              ${
+                                allUsers.length === 0 
+                                ? `<tr><td colspan="6" class="p-4 text-center text-[10px] text-slate-500 font-semibold">${lang === "ta" ? "பயனர்கள் இல்லை" : "No users found."}</td></tr>`
+                                : allUsers.map(u => `
+                                  <tr class="border-b dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition">
+                                    <td class="p-2 text-[9px] font-bold text-slate-900 dark:text-slate-200">${u.name || ((u.firstName||'') + ' ' + (u.lastName||''))}</td>
+                                    <td class="p-2 text-[9px] font-bold text-slate-700 dark:text-slate-400">${u.email}</td>
+                                    <td class="p-2 text-[9px] font-black uppercase text-blue-600 dark:text-neon-cyan">${u.accountType || u.role || 'Unknown'}</td>
+                                    <td class="p-2 text-[9px] font-semibold text-slate-600 dark:text-slate-400">${u.school || '-'}</td>
+                                    <td class="p-2 text-[9px] font-semibold text-slate-600 dark:text-slate-400">${u.dob || '-'}</td>
+                                    <td class="p-2 text-[9px] font-semibold text-slate-600 dark:text-slate-400">${u.phone || '-'}</td>
+                                  </tr>
+                                `).join('')
+                              }
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     `
                     }
@@ -3483,10 +3549,17 @@
         if (authRegisterBtn) {
           authRegisterBtn.onclick = async (e) => {
             e.preventDefault();
-            const emailInput = document.getElementById("auth-email");
-            const pwdInput = document.getElementById("auth-password");
+            const fName = document.getElementById("auth-reg-firstName")?.value;
+            const lName = document.getElementById("auth-reg-lastName")?.value;
+            const dob = document.getElementById("auth-reg-dob")?.value;
+            const phone = document.getElementById("auth-reg-phone")?.value;
+            const school = document.getElementById("auth-reg-school")?.value;
+            const emailInput = document.getElementById("auth-reg-email");
+            const pwdInput = document.getElementById("auth-reg-password");
+            const accountTypeInput = document.getElementById("auth-reg-accountType");
+            
             if (emailInput && pwdInput && emailInput.value && pwdInput.value) {
-              await handleUserRegister(emailInput.value, pwdInput.value);
+              await handleUserRegister(fName, lName, dob, school, phone, emailInput.value, pwdInput.value, accountTypeInput?.value);
             } else {
               alert(
                 "மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிடவும் / Please enter email and password",

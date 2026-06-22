@@ -47,7 +47,13 @@ service cloud.firestore {
         return data.id is string && data.id.size() <= 128 &&
                data.name is string && data.name.size() <= 200 &&
                data.email is string && data.email.size() <= 200 &&
-               data.role is string && (data.role == "student" || data.role == "admin");
+               data.role is string && (data.role == "student" || data.role == "admin") &&
+               (!('accountType' in data) || (data.accountType is string && (data.accountType == "Student" || data.accountType == "Teacher" || data.accountType == "Parent" || data.accountType == "Other"))) &&
+               (!('firstName' in data) || data.firstName is string) &&
+               (!('lastName' in data) || data.lastName is string) &&
+               (!('dob' in data) || data.dob is string) &&
+               (!('school' in data) || data.school is string) &&
+               (!('phone' in data) || data.phone is string);
       }
 
       allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());

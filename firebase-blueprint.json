@@ -70,7 +70,7 @@
     },
     "User": {
       "title": "User",
-      "description": "User profile indicating admin privilege",
+      "description": "User profile indicating admin privilege and personal details",
       "type": "object",
       "properties": {
         "id": {
@@ -88,6 +88,30 @@
             "admin",
             "student"
           ]
+        },
+        "accountType": {
+          "type": "string",
+          "enum": [
+            "Student",
+            "Teacher",
+            "Parent",
+            "Other"
+          ]
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "dob": {
+          "type": "string"
+        },
+        "school": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
         }
       },
       "required": [
