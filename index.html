@@ -115,6 +115,7 @@
         setDoc,
         deleteDoc,
         serverTimestamp,
+        getDoc,
       } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
       import {
         getAuth,
@@ -122,6 +123,7 @@
         signOut,
         onAuthStateChanged,
         createUserWithEmailAndPassword,
+        updatePassword,
       } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
       // --- Static High-Quality Fallback Data Bases ---
@@ -269,6 +271,7 @@
           papers: "வினாத்தாள்கள்",
           about: "எம்மைப் பற்றி",
           contact: "தொடர்புகளுக்கு",
+          profile: "சுயவிவரம்",
           freeEducationalPool: "இலவச கற்றல் தளம்",
           heroTitle: "தமிழ் மாணவர்களுக்கான",
           heroTitleAccent: "அனைத்து கற்றல் வளங்களும்",
@@ -341,6 +344,7 @@
           papers: "Past Papers",
           about: "About",
           contact: "Contact",
+          profile: "Profile",
           freeEducationalPool: "Free Educational Pool",
           heroTitle: "All Educational Resources",
           heroTitleAccent: "For Tamil Medium",
@@ -761,6 +765,14 @@
       let loginError = null;
       let adminStatusMessage = null;
       let isRegistering = false; // Toggle between login and register
+      let userProfile = null; // Contains custom registration details from Firestore
+      let authMode = "login"; // "login" or "register"
+
+      let isEditingProfile = false;
+      let editProfileError = null;
+      let editProfileSuccess = null;
+      let passwordChangeError = null;
+      let passwordChangeSuccess = null;
       let categories = [
         { id: "cat-history", name: "வரலாறு | History" },
         { id: "cat-science", name: "விஞ்ஞானம் | Science" },
@@ -927,11 +939,23 @@
 
           if (!authInitialized) {
             authInitialized = true;
-            onAuthStateChanged(auth, (user) => {
+            onAuthStateChanged(auth, async (user) => {
               if (user) {
                 currentUser = user;
                 currentUserEmail = user.email;
                 isAdminUser = user.email === "kishanth8254@gmail.com";
+
+                try {
+                  const userSnap = await getDoc(doc(db, "users", user.uid));
+                  if (userSnap.exists()) {
+                    userProfile = userSnap.data();
+                  } else {
+                    userProfile = null;
+                  }
+                } catch (e) {
+                  console.log("Error loading user profile:", e);
+                  userProfile = null;
+                }
 
                 const hash = window.location.hash;
                 if (hash === "" || hash === "#" || hash === "#/home" || hash === "#/login" || hash.startsWith("#/login") || hash.startsWith("#/home")) {
@@ -943,6 +967,7 @@
                 currentUser = null;
                 currentUserEmail = null;
                 isAdminUser = false;
+                userProfile = null;
               }
               renderApp();
             });
@@ -1179,18 +1204,141 @@
         }
       };
 
-      window.handleUserRegister = async (email, password) => {
+      window.handleUserRegister = async (firstName, lastName, dob, school, phone, email, password) => {
         loginError = null;
         try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
           const user = userCredential.user;
-          if (user && user.email === "kishanth8254@gmail.com") {
-            window.location.hash = "#/admin";
-          } else {
-            window.location.hash = "#/books";
+          if (user) {
+            const profileData = {
+              id: user.uid,
+              name: ((firstName || "").trim() + " " + (lastName || "").trim()).trim() || email.split('@')[0],
+              firstName: (firstName || "").trim(),
+              lastName: (lastName || "").trim(),
+              dob: dob || "",
+              school: (school || "").trim(),
+              phone: (phone || "").trim(),
+              email: email.trim(),
+              role: user.email === "kishanth8254@gmail.com" ? "admin" : "student"
+            };
+            await setDoc(doc(db, "users", user.uid), profileData);
+            userProfile = profileData;
+            
+            if (user.email === "kishanth8254@gmail.com") {
+              window.location.hash = "#/admin";
+            } else {
+              window.location.hash = "#/books";
+            }
           }
         } catch (e) {
           loginError = "கணக்கு உருவாக்க முடியவில்லை: " + e.message;
+          renderApp();
+        }
+      };
+
+      function calculateAge(dobString) {
+        if (!dobString) return "";
+        const dobDate = new Date(dobString);
+        if (isNaN(dobDate.getTime())) return "";
+        const today = new Date();
+        let age = today.getFullYear() - dobDate.getFullYear();
+        const m = today.getMonth() - dobDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+          age--;
+        }
+        return age >= 0 ? age : 0;
+      }
+
+      window.toggleProfileEdit = (state) => {
+        isEditingProfile = state;
+        editProfileError = null;
+        editProfileSuccess = null;
+        renderApp();
+      };
+
+      window.saveUserProfileDetails = async (firstName, lastName, dob, school, phone) => {
+        if (!currentUser) return;
+        editProfileError = null;
+        editProfileSuccess = null;
+        try {
+          const profileData = {
+            id: currentUser.uid,
+            email: currentUser.email,
+            role: userProfile?.role || (currentUser.email === "kishanth8254@gmail.com" ? "admin" : "student"),
+            firstName: (firstName || "").trim(),
+            lastName: (lastName || "").trim(),
+            name: ((firstName || "").trim() + " " + (lastName || "").trim()).trim() || currentUser.email.split('@')[0],
+            dob: dob || "",
+            school: (school || "").trim(),
+            phone: (phone || "").trim()
+          };
+
+          await setDoc(doc(db, "users", currentUser.uid), profileData, { merge: true });
+          
+          if (!userProfile) userProfile = {};
+          userProfile = {
+            ...userProfile,
+            ...profileData
+          };
+
+          editProfileSuccess = lang === "ta" 
+            ? "சுயவிவர தகவல்கள் வெற்றிகரமாக புதுப்பிக்கப்பட்டது!" 
+            : "Profile details updated successfully!";
+          isEditingProfile = false;
+          renderApp();
+        } catch (e) {
+          editProfileError = lang === "ta" 
+            ? "சேமிக்க முடியவில்லை: " + e.message 
+            : "Could not save details: " + e.message;
+          renderApp();
+        }
+      };
+
+      window.changeUserPassword = async (newPassword, confirmPassword) => {
+        if (!currentUser) return;
+        passwordChangeError = null;
+        passwordChangeSuccess = null;
+
+        if (!newPassword || !confirmPassword) {
+          passwordChangeError = lang === "ta"
+            ? "கடவுச்சொற்களை உள்ளிடவும் / Please enter password values"
+            : "Please enter password values";
+          renderApp();
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          passwordChangeError = lang === "ta"
+            ? "கடவுச்சொற்கள் பொருந்தவில்லை / Passwords do not match!"
+            : "Passwords do not match!";
+          renderApp();
+          return;
+        }
+
+        if (newPassword.length < 6) {
+          passwordChangeError = lang === "ta"
+            ? "கடவுச்சொல் குறைந்தது 6 அச்சு எழுத்துக்கள் கொண்டிருக்க வேண்டும்! / Password must be at least 6 characters!"
+            : "Password must be at least 6 characters long!";
+          renderApp();
+          return;
+        }
+
+        try {
+          await updatePassword(auth.currentUser, newPassword);
+          passwordChangeSuccess = lang === "ta"
+            ? "கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது! / Password changed successfully!"
+            : "Password changed successfully!";
+          renderApp();
+        } catch (e) {
+          if (e.code === "auth/requires-recent-login") {
+            passwordChangeError = lang === "ta"
+              ? "பாதுகாப்பு காரணமாக, கடவுச்சொல்லை மாற்ற நீங்கள் வெளியேறி மீண்டும் உள்நுழையவும். / For security, please log out and sign back in to modify password."
+              : "For security, please log out and sign back in to modify your password.";
+          } else {
+            passwordChangeError = lang === "ta"
+              ? "கடவுச்சொல்லை மாற்ற முடியவில்லை / Could not change password: " + e.message
+              : "Could not change password: " + e.message;
+          }
           renderApp();
         }
       };
@@ -1229,20 +1377,47 @@
 
         if (hash === "#/books" || hash.startsWith("#/books")) {
           currentTab = "books";
+          isEditingProfile = false;
+          editProfileError = null; editProfileSuccess = null;
+          passwordChangeError = null; passwordChangeSuccess = null;
         } else if (hash === "#/papers" || hash.startsWith("#/papers")) {
           currentTab = "papers";
+          isEditingProfile = false;
+          editProfileError = null; editProfileSuccess = null;
+          passwordChangeError = null; passwordChangeSuccess = null;
         } else if (hash === "#/videos" || hash.startsWith("#/videos")) {
           currentTab = "videos";
-        } else if (hash === "#/about" || hash.startsWith("#/about")) {
+          isEditingProfile = false;
+          editProfileError = null; editProfileSuccess = null;
+          passwordChangeError = null; passwordChangeSuccess = null;
+        } else if (hash === "#/about" || hash.startsWith("#/about") || hash === "#/contact" || hash.startsWith("#/contact")) {
           currentTab = "about";
-        } else if (hash === "#/contact" || hash.startsWith("#/contact")) {
-          currentTab = "contact";
+          isEditingProfile = false;
+          editProfileError = null; editProfileSuccess = null;
+          passwordChangeError = null; passwordChangeSuccess = null;
         } else if (hash === "#/login" || hash.startsWith("#/login")) {
           currentTab = "login";
+          isEditingProfile = false;
+          editProfileError = null; editProfileSuccess = null;
+          passwordChangeError = null; passwordChangeSuccess = null;
         } else if (hash === "#/admin" || hash.startsWith("#/admin")) {
           currentTab = "admin";
+          isEditingProfile = false;
+          editProfileError = null; editProfileSuccess = null;
+          passwordChangeError = null; passwordChangeSuccess = null;
+        } else if (hash === "#/profile" || hash.startsWith("#/profile")) {
+          currentTab = "profile";
+          if (!isEditingProfile) {
+            editProfileError = null;
+            editProfileSuccess = null;
+            passwordChangeError = null;
+            passwordChangeSuccess = null;
+          }
         } else {
           currentTab = "home";
+          isEditingProfile = false;
+          editProfileError = null; editProfileSuccess = null;
+          passwordChangeError = null; passwordChangeSuccess = null;
         }
         renderApp();
       }
@@ -1394,12 +1569,12 @@
                         <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.about}</span>
                       </button>
 
-                      <!-- Contact btn -->
-                      <button class="nav-tab-contact w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 cursor-pointer ${currentTab === "contact" ? "bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan font-extrabold border border-blue-200/40 dark:border-neon-cyan/25" : "text-slate-450 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"}" style="width: 100%;">
+                      <!-- Profile btn -->
+                      <button class="nav-tab-profile w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-left transition duration-200 cursor-pointer ${currentTab === "profile" ? "bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan font-extrabold border border-blue-200/40 dark:border-neon-cyan/25" : "text-slate-450 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"}" style="width: 100%;">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
-                        <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.contact}</span>
+                        <span class="text-[10px] uppercase font-black tracking-wider leading-none">${t.profile}</span>
                       </button>
 
                       <!-- Admin Area for Admin Users -->
@@ -2078,16 +2253,16 @@
 
                       <div class="grid grid-cols-2 gap-2">
                         <div>
-                          <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterByGrade}</label>
-                          <select id="video-grade-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                          <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 dark:text-slate-400 mb-1">${t.filterByGrade}</label>
+                          <select id="video-grade-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-955 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
                             <option value="All" ${selectedGrade === "All" ? "selected" : ""}>${t.allGrades}</option>
                             ${GRADES.map((g) => `<option value="${g}" ${selectedGrade === g ? "selected" : ""}>${lang === "ta" ? TAMIL_MAP[g] || g : g}</option>`).join("")}
                           </select>
                         </div>
 
                         <div>
-                          <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">${t.filterBySubject}</label>
-                          <select id="video-subject-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-950 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                          <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-555 dark:text-slate-400 mb-1">${t.filterBySubject}</label>
+                          <select id="video-subject-select" class="w-full bg-slate-100 dark:bg-slate-950 text-[10px] text-slate-955 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
                             <option value="All" ${selectedSubject === "All" ? "selected" : ""}>${t.allSubjects}</option>
                             ${Object.keys(SUBJECT_MAP)
                               .map(
@@ -2106,19 +2281,19 @@
                       <span class="text-[8px] font-extrabold uppercase text-slate-400 dark:text-slate-500 tracking-wider mb-2 hidden lg:block">
                         ${lang === "ta" ? "அடுத்த வீடியோக்கள்" : "Up Next / Related Lessons"}
                       </span>
-                      <div class="grid grid-cols-1 gap-2.5 max-h-[480px] overflow-y-auto pr-1 no-scrollbar">
+                      <div class="grid grid-cols-1 gap-2.5 max-h-[480px] overflow-y-auto pr-1 no-scrollbar flex-1">
                       ${
                         filteredVideos.length === 0
                           ? `
-                        <div class="p-8 text-center bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-900">
+                        <div class="p-8 text-center bg-white dark:bg-[#111827] rounded-xl border border-slate-200 dark:border-slate-900 w-full animate-pulse">
                           <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold leading-relaxed">${t.noVideosFound}</p>
                         </div>
                       `
                           : filteredVideos
                               .map(
                                 (v) => `
-                        <div class="video-trigger-btn bg-white dark:bg-[#111827] rounded-xl border ${activeVideoId === v.youtubeId && activeVideoTitle === v.title ? "border-blue-500 dark:border-neon-cyan shadow-sm bg-blue-500/5" : "border-slate-150 dark:border-slate-850"} p-3 flex items-start space-x-3 hover:scale-[1.01] transition duration-250 cursor-pointer" data-ytid="${v.youtubeId}" data-title="${v.title}">
-                          <div class="w-16 h-10 bg-slate-950 rounded-lg relative flex items-center justify-center shrink-0 overflow-hidden shadow">
+                        <div class="video-trigger-btn bg-white dark:bg-[#111827] rounded-xl border ${activeVideoId === v.youtubeId && activeVideoTitle === v.title ? 'border-blue-500 dark:border-neon-cyan shadow-sm bg-blue-500/5' : 'border-slate-150 dark:border-slate-850'} p-3 flex items-start space-x-3 hover:scale-[1.01] transition duration-250 cursor-pointer" data-ytid="${v.youtubeId}" data-title="${v.title}">
+                          <div class="w-16 h-10 bg-slate-950 rounded-lg relative flex items-center justify-center shrink-0 overflow-hidden shadow overflow-hidden">
                             <img class="absolute inset-0 w-full h-full object-cover opacity-60" src="https://img.youtube.com/vi/${v.youtubeId}/hqdefault.jpg" alt="thumbnail" />
                             <div class="w-6 h-6 bg-blue-600/90 dark:bg-neon-cyan/90 text-white dark:text-slate-900 rounded-full flex items-center justify-center relative z-10 shadow">
                               <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
@@ -2167,126 +2342,421 @@
                 `
                           : currentTab === "about"
                             ? `
-                  <!-- TAB 5: ABOUT -->
+                  <!-- TAB 5: ABOUT & CONTACT (COMBINED) -->
                   <div class="space-y-4">
                     <div class="space-y-1">
-                      <h2 class="text-base font-black text-slate-950 dark:text-white tracking-tight uppercase">${t.aboutTitle}</h2>
-                      <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">${t.aboutDesc}</p>
+                      <h2 class="text-base font-black text-slate-950 dark:text-white tracking-tight uppercase">${lang === "ta" ? "எம்மைப் பற்றி & உதவி" : "About & Support"}</h2>
+                      <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">${lang === "ta" ? "அனைத்து வளங்கள், எமது இலக்கு மற்றும் தொடர்பு தகவல்கள்" : "All resources, our mission, and contact channels."}</p>
                     </div>
 
-                    <section class="bg-white dark:bg-[#111827] rounded-xl p-4 border border-slate-150 dark:border-slate-850 shadow-sm space-y-3">
-                      <div class="flex items-center space-x-2 text-blue-600 dark:text-neon-cyan">
-                        <svg class="w-4 h-4 text-glow-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                        <h4 class="font-extrabold text-xs uppercase tracking-wider">${t.aboutHeroTitle}</h4>
-                      </div>
-                      <p class="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed font-semibold">
-                        ${t.aboutHeroDesc}
-                      </p>
-                      <div class="h-px bg-slate-100 dark:bg-slate-800"></div>
-                      <p class="text-[9.5px] text-slate-500 dark:text-slate-400 leading-relaxed italic font-bold">
-                        * ${t.aboutBannerDesc}
-                      </p>
-                    </section>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      <!-- Left column: Vision, Mission -->
+                      <div class="space-y-4">
+                        <section class="bg-white dark:bg-[#111827] rounded-xl p-4 border border-slate-150 dark:border-slate-850 shadow-sm space-y-3">
+                          <div class="flex items-center space-x-2 text-blue-600 dark:text-neon-cyan">
+                            <svg class="w-4 h-4 text-glow-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            <h4 class="font-extrabold text-xs uppercase tracking-wider">${t.aboutHeroTitle}</h4>
+                          </div>
+                          <p class="text-[10px] text-slate-600 dark:text-slate-300 leading-relaxed font-semibold">
+                            ${t.aboutHeroDesc}
+                          </p>
+                          <div class="h-px bg-slate-100 dark:bg-slate-800"></div>
+                          <p class="text-[9.5px] text-slate-500 dark:text-slate-400 leading-relaxed italic font-bold">
+                            * ${t.aboutBannerDesc}
+                          </p>
+                        </section>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm">
-                        <h4 class="font-black text-xs text-slate-950 dark:text-white dark:text-glow-purple uppercase tracking-wider mb-1.5">${t.missionTitle}</h4>
-                        <p class="text-[10px] text-slate-600 dark:text-slate-450 leading-relaxed font-semibold">${t.missionDesc}</p>
+                        <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm">
+                          <h4 class="font-black text-xs text-slate-950 dark:text-white dark:text-glow-purple uppercase tracking-wider mb-1.5">${t.missionTitle}</h4>
+                          <p class="text-[10px] text-slate-600 dark:text-slate-450 leading-relaxed font-semibold">${t.missionDesc}</p>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm">
+                          <h4 class="font-black text-xs text-slate-950 dark:text-white dark:text-glow-pink uppercase tracking-wider mb-1.5">${lang === "ta" ? "எங்கள் தாரக மந்திரம்" : "Platform Nature"}</h4>
+                          <p class="text-[10px] text-slate-600 dark:text-slate-450 leading-relaxed font-semibold">${t.value1Desc}</p>
+                        </div>
                       </div>
-                      
-                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm">
-                        <h4 class="font-black text-xs text-slate-950 dark:text-white dark:text-glow-pink uppercase tracking-wider mb-1.5">${lang === "ta" ? "எங்கள் தாரக மந்திரம்" : "Platform Nature"}</h4>
-                        <p class="text-[10px] text-slate-600 dark:text-slate-450 leading-relaxed font-semibold">${t.value1Desc}</p>
+
+                      <!-- Right column: Contact Form -->
+                      <div class="space-y-4">
+                        <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm">
+                          <h3 class="text-xs font-black text-slate-950 dark:text-white uppercase mb-2">${t.contactTitle}</h3>
+                          
+                          ${
+                            contactSuccess
+                              ? `
+                            <div class="bg-green-100 border border-green-300 dark:bg-neon-pink/10 dark:border-neon-pink/30 p-4 rounded-xl text-center space-y-3">
+                              <div class="mx-auto w-10 h-10 bg-green-200 dark:bg-neon-pink/20 rounded-full flex items-center justify-center text-green-700 dark:text-neon-pink">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                              </div>
+                              <p class="text-[10.5px] font-black text-green-800 dark:text-neon-pink leading-snug">${t.msgSuccess}</p>
+                              <button id="contact-reset-btn" class="px-4 py-1.5 bg-slate-950 dark:bg-slate-950 border dark:border-slate-800 text-white rounded-lg text-[9px] font-black uppercase">Ok</button>
+                            </div>
+                          `
+                              : `
+                            <form id="contact-form-renderer" class="space-y-3.5">
+                              <div>
+                                <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-400 mb-1">${t.nameLabel}</label>
+                                <input 
+                                  type="text" 
+                                  id="form-name-input" 
+                                  required 
+                                  placeholder="சரவணன் குமார்" 
+                                  class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                />
+                              </div>
+
+                              <div>
+                                <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-555 dark:text-slate-400 mb-1">${t.emailLabel}</label>
+                                <input 
+                                  type="email" 
+                                  id="form-email-input" 
+                                  required 
+                                  placeholder="saravanan@gmail.com" 
+                                  class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                />
+                              </div>
+
+                              <div>
+                                <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-400 mb-1">${t.messageLabel}</label>
+                                <textarea 
+                                  id="form-message-input" 
+                                  rows="3" 
+                                  required 
+                                  placeholder="அன்புடன், எனக்கு தரம் 11 கணித வினாத்தாள் தேவைப்படுகிறது..." 
+                                  class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                ></textarea>
+                              </div>
+
+                              <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-neon-purple to-neon-cyan hover:from-neon-cyan hover:to-neon-pink text-slate-950 font-black text-[10.5px] uppercase tracking-wider rounded-lg transition-all shadow-md">
+                                ${t.sendMsg}
+                              </button>
+                            </form>
+                          `
+                          }
+                        </div>
+
+                        <!-- Help coordinates -->
+                        <section class="bg-slate-100 dark:bg-[#111827] rounded-xl p-4 border border-slate-200 dark:border-slate-900 flex flex-col space-y-2">
+                          <div class="flex items-center space-x-2 text-[10px] text-slate-600 dark:text-slate-300 font-bold">
+                            <svg class="w-4 h-4 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>${lang === "ta" ? "அமைவிடம்: முல்லைதீவு, இலங்கை." : "Location: Mullaitivu, Sri Lanka."}</span>
+                          </div>
+                          <div class="flex items-center space-x-2 text-[10px] text-slate-600 dark:text-slate-300 font-bold">
+                            <svg class="w-4 h-4 text-neon-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>mrmpbsofficel@gmail.com</span>
+                          </div>
+                        </section>
                       </div>
                     </div>
                   </div>
                 `
-                            : currentTab === "contact"
-                              ? `
-                  <!-- TAB 6: CONTACT -->
-                  <div class="space-y-4">
+                          : currentTab === "profile"
+                            ? `
+                  <!-- TAB 8: PROFILE SCREEN -->
+                  <div class="max-w-2xl mx-auto space-y-6 py-4 animate-in fade-in duration-300">
                     <div class="space-y-1">
-                      <h2 class="text-base font-black text-slate-950 dark:text-white tracking-tight uppercase">${t.contactTitle}</h2>
-                      <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">${t.contactDesc}</p>
+                      <h2 class="text-base font-black text-slate-950 dark:text-white tracking-tight uppercase">${lang === "ta" ? "எனது சுயவிவரம்" : "My Profile"}</h2>
+                      <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">${lang === "ta" ? "வள கையேடுகள் மற்றும் கல்வி தகவல்கள்" : "Academic details and registration attributes."}</p>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-neon-purple/10 via-neon-cyan/5 to-neon-pink/10 p-5 rounded-2xl border border-slate-150 dark:border-slate-850 shadow-sm flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-5">
+                      <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-neon-purple to-neon-cyan flex items-center justify-center text-white text-2xl font-black shadow-lg">
+                        ${(userProfile?.firstName ? userProfile.firstName[0] : (currentUserEmail ? currentUserEmail[0] : "S")).toUpperCase()}
+                      </div>
+                      <div class="text-center md:text-left min-w-0 flex-1">
+                        <h3 class="text-sm font-extrabold text-slate-950 dark:text-white truncate">
+                          ${userProfile?.name || (currentUserEmail ? currentUserEmail.split('@')[0] : "மாணவர்")}
+                        </h3>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5">${currentUserEmail}</p>
+                        <div class="flex flex-wrap justify-center md:justify-start gap-1.5 mt-2">
+                          <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 dark:bg-neon-cyan/25 dark:text-neon-cyan rounded text-[8px] font-black tracking-wider uppercase">
+                            ${userProfile?.role === "admin" ? (lang === "ta" ? "நிர்வாகி (Admin)" : "Administrator") : (lang === "ta" ? "மாணவர் (Student)" : "Student")}
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
                     ${
-                      contactSuccess
+                      editProfileSuccess
                         ? `
-                      <div class="bg-green-100 border border-green-300 dark:bg-neon-pink/10 dark:border-neon-pink/30 p-4 rounded-xl text-center space-y-3">
-                        <div class="mx-auto w-10 h-10 bg-green-200 dark:bg-neon-pink/20 rounded-full flex items-center justify-center text-green-700 dark:text-neon-pink">
-                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
-                          </svg>
+                        <div class="p-3 bg-green-100 border border-green-200 text-green-800 dark:bg-emerald-950/20 dark:border-emerald-500/30 dark:text-emerald-400 rounded-xl text-[9.5px] font-bold text-center leading-snug">
+                          ${editProfileSuccess}
                         </div>
-                        <p class="text-[10.5px] font-black text-green-800 dark:text-neon-pink leading-snug">${t.msgSuccess}</p>
-                        <button id="contact-reset-btn" class="px-4 py-1.5 bg-slate-950 dark:bg-slate-900 border dark:border-slate-800 text-white rounded-lg text-[9px] font-black uppercase">Ok</button>
-                      </div>
+                      `
+                        : ""
+                    }
+                    ${
+                      editProfileError
+                        ? `
+                        <div class="p-3 bg-red-105 border border-red-200 text-red-800 dark:bg-red-950/20 dark:border-red-500/30 dark:text-red-400 rounded-xl text-[9.5px] font-bold text-center leading-snug">
+                          ${editProfileError}
+                        </div>
+                      `
+                        : ""
+                    }
+
+                    ${
+                      isEditingProfile
+                        ? `
+                      <!-- Profile Edit Form Mode -->
+                      <section class="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-150 dark:border-slate-850 shadow-sm space-y-4">
+                        <div class="flex items-center space-x-2 border-b dark:border-slate-800 pb-2">
+                          <svg class="w-4 h-4 text-neon-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                          </svg>
+                          <h4 class="font-black text-xs text-slate-950 dark:text-white uppercase tracking-wider">
+                            ${lang === "ta" ? "சுயவிவரத்தை திருத்தவும்" : "Edit Profile Details"}
+                          </h4>
+                        </div>
+
+                        <form id="profile-edit-form" class="space-y-3.5" onsubmit="event.preventDefault(); window.saveUserProfileDetails(
+                          document.getElementById('edit-firstName').value,
+                          document.getElementById('edit-lastName').value,
+                          document.getElementById('edit-dob').value,
+                          document.getElementById('edit-school').value,
+                          document.getElementById('edit-phone').value
+                        ); return false;">
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <div>
+                              <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-450 mb-1">
+                                ${lang === "ta" ? "முதல் பெயர்" : "First Name"} *
+                              </label>
+                              <input 
+                                required 
+                                type="text" 
+                                id="edit-firstName" 
+                                value="${userProfile?.firstName || ""}" 
+                                placeholder="சரவணன்" 
+                                class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple focus:border-neon-purple"
+                              />
+                            </div>
+                            <div>
+                              <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-450 mb-1">
+                                ${lang === "ta" ? "இரண்டாம் பெயர்" : "Last Name"} *
+                              </label>
+                              <input 
+                                required 
+                                type="text" 
+                                id="edit-lastName" 
+                                value="${userProfile?.lastName || ""}" 
+                                placeholder="குமார்" 
+                                class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple focus:border-neon-purple"
+                              />
+                            </div>
+                          </div>
+
+                          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <div>
+                              <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-450 mb-1">
+                                ${lang === "ta" ? "பிறந்த திகதி" : "Date of Birth"}
+                              </label>
+                              <input 
+                                type="date" 
+                                id="edit-dob" 
+                                value="${userProfile?.dob || ""}" 
+                                class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                              />
+                            </div>
+                            <div>
+                              <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-450 mb-1">
+                                ${lang === "ta" ? "தொலைபேசி எண்" : "Phone Number"}
+                              </label>
+                              <input 
+                                type="tel" 
+                                id="edit-phone" 
+                                value="${userProfile?.phone || ""}" 
+                                placeholder="0771234567" 
+                                class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-450 mb-1">
+                              ${lang === "ta" ? "பாடசாலை" : "School"}
+                            </label>
+                            <input 
+                              type="text" 
+                              id="edit-school" 
+                              value="${userProfile?.school || ""}" 
+                              placeholder="யாழ் / இந்து கல்லூரி" 
+                              class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none"
+                            />
+                          </div>
+
+                          <div class="flex items-center justify-end space-x-2 pt-2">
+                            <button 
+                              type="button" 
+                              onclick="window.toggleProfileEdit(false)" 
+                              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-850 text-slate-705 dark:text-slate-200 text-[9px] font-black uppercase tracking-wider rounded-lg transition border dark:border-slate-800 cursor-pointer"
+                            >
+                              ${lang === "ta" ? "ரத்து செய்" : "Cancel"}
+                            </button>
+                            <button 
+                              type="submit" 
+                              class="px-5 py-2 bg-gradient-to-r from-neon-purple to-neon-cyan text-slate-950 text-[9px] font-black uppercase tracking-wider rounded-lg transition shadow-md hover:scale-[1.01] cursor-pointer"
+                            >
+                              ${lang === "ta" ? "சுயவிவரத்தை சேமி" : "Save Profile"}
+                            </button>
+                          </div>
+                        </form>
+                      </section>
                     `
                         : `
-                      <form id="contact-form-renderer" class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm space-y-3.5">
-                        <div>
-                          <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">${t.nameLabel}</label>
-                          <input 
-                            type="text" 
-                            id="form-name-input" 
-                            required 
-                            placeholder="சரவணன் குமார்" 
-                            class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
-                          />
+                      <!-- Read-only Details View -->
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-[#111827]/30 dark:bg-slate-950/20 p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm space-y-3">
+                          <h4 class="font-black text-xs text-slate-950 dark:text-white uppercase tracking-wider mb-2 border-b dark:border-slate-905 pb-1.5">${lang === "ta" ? "தனிப்பட்ட விவரங்கள்" : "Personal Particulars"}</h4>
+                          
+                          <div class="space-y-2">
+                            <div>
+                              <span class="text-[8px] uppercase tracking-widest text-slate-450 dark:text-slate-500 font-black block">${lang === "ta" ? "முதல் பெயர்" : "First Name"}</span>
+                              <span class="text-[10.5px] font-bold text-slate-900 dark:text-white capitalize">${userProfile?.firstName || "-"}</span>
+                            </div>
+                            <div>
+                              <span class="text-[8px] uppercase tracking-widest text-slate-450 dark:text-slate-500 font-black block">${lang === "ta" ? "இரண்டாம் பெயர்" : "Last Name"}</span>
+                              <span class="text-[10.5px] font-bold text-slate-900 dark:text-white capitalize">${userProfile?.lastName || "-"}</span>
+                            </div>
+                            <div>
+                              <span class="text-[8px] uppercase tracking-widest text-slate-450 dark:text-slate-500 font-black block">${lang === "ta" ? "மின்னஞ்சல்" : "Primary Email"}</span>
+                              <span class="text-[10.5px] font-bold text-slate-900 dark:text-white">${currentUserEmail}</span>
+                            </div>
+                          </div>
                         </div>
 
-                        <div>
-                          <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">${t.emailLabel}</label>
-                          <input 
-                            type="email" 
-                            id="form-email-input" 
-                            required 
-                            placeholder="saravanan@gmail.com" 
-                            class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
-                          />
+                        <div class="bg-[#111827]/30 dark:bg-slate-950/20 p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm space-y-3">
+                          <h4 class="font-black text-xs text-slate-950 dark:text-white uppercase tracking-wider mb-2 border-b dark:border-slate-905 pb-1.5">${lang === "ta" ? "கல்வி விவரங்கள்" : "Academic Particulars"}</h4>
+                          
+                          <div class="space-y-2">
+                            <div>
+                              <span class="text-[8px] uppercase tracking-widest text-slate-450 dark:text-slate-500 font-black block">${lang === "ta" ? "பிறந்த திகதி" : "Date of Birth"}</span>
+                              <span class="text-[10.5px] font-bold text-slate-900 dark:text-white">${userProfile?.dob || "-"}</span>
+                            </div>
+                            <div>
+                              <span class="text-[8px] uppercase tracking-widest text-slate-450 dark:text-slate-500 font-black block">${lang === "ta" ? "வயது (கணக்கிடப்பட்டது)" : "Calculated Age"}</span>
+                              <span class="text-[10.5px] font-bold text-slate-900 dark:text-white">${userProfile?.dob ? calculateAge(userProfile.dob) + " " + (lang === "ta" ? "வருடங்கள்" : "years") : "-"}</span>
+                            </div>
+                            <div>
+                              <span class="text-[8px] uppercase tracking-widest text-slate-450 dark:text-slate-500 font-black block">${lang === "ta" ? "பாடசாலை" : "School"}</span>
+                              <span class="text-[10.5px] font-bold text-slate-900 dark:text-white capitalize">${userProfile?.school || "-"}</span>
+                            </div>
+                            <div>
+                              <span class="text-[8px] uppercase tracking-widest text-slate-450 dark:text-slate-500 font-black block">${lang === "ta" ? "தொலைபேசி எண்" : "Phone Number"}</span>
+                              <span class="text-[10.5px] font-bold text-slate-900 dark:text-white">${userProfile?.phone || "-"}</span>
+                            </div>
+                          </div>
                         </div>
+                      </div>
 
-                        <div>
-                          <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">${t.messageLabel}</label>
-                          <textarea 
-                            id="form-message-input" 
-                            rows="3" 
-                            required 
-                            placeholder="அன்புடன், எனக்கு தரம் 11 கணித வினாத்தாள் தேவைப்படுகிறது..." 
-                            class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
-                          ></textarea>
-                        </div>
-
-                        <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-neon-purple to-neon-cyan hover:from-neon-cyan hover:to-neon-pink text-slate-950 font-black text-[10.5px] uppercase tracking-wider rounded-lg transition-all shadow-md">
-                          ${t.sendMsg}
+                      <div class="flex justify-end pt-1">
+                        <button 
+                          onclick="window.toggleProfileEdit(true)" 
+                          class="flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-neon-purple/20 to-neon-cyan/20 border border-neon-purple/35 hover:border-neon-cyan/50 text-slate-950 dark:text-white font-black text-[9px] uppercase tracking-wider rounded-xl transition duration-250 cursor-pointer"
+                        >
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                          </svg>
+                          <span>${lang === "ta" ? "தகவல்களை திருத்தவும்" : "Edit Profile Details"}</span>
                         </button>
-                      </form>
+                      </div>
                     `
                     }
 
-                    <!-- Help coordinates -->
-                    <section class="bg-slate-100 dark:bg-[#111827] rounded-xl p-4 border border-slate-200 dark:border-slate-900 flex flex-col space-y-2">
-                      <div class="flex items-center space-x-2 text-[10px] text-slate-600 dark:text-slate-300 font-bold">
-                        <svg class="w-4 h-4 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <!-- PASSWORD CHANGE SECTION CARD -->
+                    <section class="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-150 dark:border-slate-850 shadow-sm space-y-4 animate-in fade-in">
+                      <div class="flex items-center space-x-2 border-b dark:border-slate-800 pb-2">
+                        <svg class="w-4 h-4 text-neon-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                         </svg>
-                        <span>${lang === "ta" ? "அமைவிடம்: முல்லைதீவு, இலங்கை." : "Location: Mullaitivu, Sri Lanka."}</span>
+                        <h4 class="font-black text-xs text-slate-950 dark:text-white uppercase tracking-wider">
+                          ${lang === "ta" ? "கடவுச்சொல்லை மாற்றுக" : "Change Account Password"}
+                        </h4>
                       </div>
-                      <div class="flex items-center space-x-2 text-[10px] text-slate-600 dark:text-slate-300 font-bold">
-                        <svg class="w-4 h-4 text-neon-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                        </svg>
-                        <span>mrmpbsofficel@gmail.com</span>
-                      </div>
+
+                      ${
+                        passwordChangeSuccess
+                          ? `
+                          <div class="p-3 bg-green-100 border border-green-250 text-green-800 dark:bg-emerald-950/20 dark:border-emerald-500/30 dark:text-emerald-400 rounded-xl text-[9.5px] font-bold text-center leading-snug animate-in fade-in">
+                            ${passwordChangeSuccess}
+                          </div>
+                        `
+                          : ""
+                      }
+                      ${
+                        passwordChangeError
+                          ? `
+                          <div class="p-3 bg-red-105 border border-red-200 text-red-850 dark:bg-red-950/20 dark:border-red-500/30 dark:text-red-400 rounded-xl text-[9.5px] font-bold text-center leading-snug animate-in fade-in">
+                            ${passwordChangeError}
+                          </div>
+                        `
+                          : ""
+                      }
+
+                      <form id="password-change-form" class="space-y-3.5" onsubmit="event.preventDefault(); window.changeUserPassword(
+                        document.getElementById('change-newpwd').value,
+                        document.getElementById('change-confirmpwd').value
+                      ); return false;">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                          <div>
+                            <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-400 mb-1">
+                              ${lang === "ta" ? "புதிய கடவுச்சொல்" : "New Password"}
+                            </label>
+                            <input 
+                              required 
+                              type="password" 
+                              id="change-newpwd" 
+                              placeholder="••••••••" 
+                              class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple focus:border-neon-purple"
+                            />
+                          </div>
+                          <div>
+                            <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-555 dark:text-slate-400 mb-1">
+                              ${lang === "ta" ? "கடவுச்சொல்லை உறுதிப்படுத்து" : "Confirm New Password"}
+                            </label>
+                            <input 
+                              required 
+                              type="password" 
+                              id="change-confirmpwd" 
+                              placeholder="••••••••" 
+                              class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple focus:border-neon-purple"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="flex justify-end pt-1">
+                          <button 
+                            type="submit" 
+                            class="px-5 py-2.5 bg-gradient-to-r from-neon-purple to-neon-pink text-slate-950 hover:scale-[1.01] transition duration-200 text-[9px] font-black uppercase tracking-wider rounded-lg shadow-sm cursor-pointer"
+                          >
+                            ${lang === "ta" ? "கடவுச்சொல்லை மாற்றவும்" : "Update Password"}
+                          </button>
+                        </div>
+                      </form>
                     </section>
+
+                    <!-- Sign Out Banner -->
+                    <div class="bg-[#111827]/50 p-4 rounded-xl border border-slate-150 dark:border-slate-850 text-center space-y-3">
+                      <p class="text-[9.5px] text-slate-400 font-semibold leading-relaxed">
+                        ${lang === "ta" ? "உங்கள் கணக்கில் இருந்து வெளியேற விரும்புகிறீர்களா?" : "Do you want to sign out from your active student dashboard session?"}
+                      </p>
+                      <button onclick="handleUserSignOut()" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-[9px] uppercase tracking-wider rounded-xl transition duration-200 cursor-pointer">
+                        ${lang === "ta" ? "வெளியேறு (Logout)" : "Disconnect Session"}
+                      </button>
+                    </div>
                   </div>
                 `
-                              : currentTab === "login"
-                                ? `
+                          : currentTab === "login"
+                            ? `
                   <!-- TAB 7: LOGIN SCREEN -->
                   <div class="max-w-md mx-auto space-y-5 animate-in fade-in duration-350 py-4">
                     <div class="space-y-1 text-center">
@@ -2540,7 +3010,7 @@
                             <div class="grid grid-cols-2 gap-2.5">
                               <div>
                                 <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-550 mb-1">${lang === "ta" ? "தரம்" : "Grade"}</label>
-                                <select id="add-vid-grade" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-800 rounded-lg p-2 font-bold focus:outline-none">
+                                <select id="add-vid-grade" class="w-full bg-slate-50 dark:bg-slate-950 text-[10px] text-slate-900 dark:text-white border dark:border-slate-850 rounded-lg p-2 font-bold focus:outline-none">
                                   ${GRADES.map((g) => `<option value="${g}">${lang === "ta" ? TAMIL_MAP[g] || g : g}</option>`).join("")}
                                 </select>
                               </div>
@@ -2673,14 +3143,14 @@
                   <span class="text-[7px] font-black uppercase mt-1 tracking-wider text-center truncate w-full">${t.about}</span>
                 </button>
 
-                <!-- Tab Item 6: Contact -->
-                <button id="nav-tab-contact" class="flex flex-col items-center justify-center p-0.5 rounded-xl transition duration-300 cursor-pointer select-none" style="width: 58px;">
-                  <div id="nav-tab-contact-box" class="p-1 px-3 rounded-lg transition ${currentTab === "contact" ? "bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan border border-blue-200/40 dark:border-neon-cyan/25" : "text-slate-400 dark:text-slate-500"}">
+                <!-- Tab Item 6: Profile -->
+                <button id="nav-tab-profile" class="flex flex-col items-center justify-center p-0.5 rounded-xl transition duration-300 cursor-pointer select-none" style="width: 58px;">
+                  <div id="nav-tab-profile-box" class="p-1 px-3 rounded-lg transition ${currentTab === "profile" ? "bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan border border-blue-200/40 dark:border-neon-cyan/25" : "text-slate-400 dark:text-slate-500"}">
                     <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                   </div>
-                  <span class="text-[7px] font-black uppercase mt-1 tracking-wider text-center truncate w-full">${t.contact}</span>
+                  <span class="text-[7px] font-black uppercase mt-1 tracking-wider text-center truncate w-full">${t.profile}</span>
                 </button>
 
               </div>
@@ -2763,6 +3233,7 @@
           "contact",
           "login",
           "admin",
+          "profile",
         ];
         tabs.forEach((tab) => {
           document
