@@ -1424,6 +1424,11 @@
 
       window.addEventListener("hashchange", handleRoute);
 
+      // Expose to window for inline onclick handlers
+      window.renderApp = renderApp;
+      Object.defineProperty(window, 'authMode', { get: () => authMode, set: (val) => { authMode = val; } });
+      Object.defineProperty(window, 'adminStatusMessage', { get: () => adminStatusMessage, set: (val) => { adminStatusMessage = val; } });
+
       // --- Main Render Engine ---
       function renderApp() {
         const rootElement = document.getElementById("root");
@@ -1764,21 +1769,18 @@
                           ${t.heroDesc}
                         </p>
 
-                        <!-- Direct Search mechanism -->
-                        <form id="home-search-form" class="mt-4 flex gap-1.5 max-w-xs mx-auto">
-                          <div class="relative flex-grow">
-                            <input 
-                              type="text" 
-                              id="home-search-input" 
-                              value="${searchKeyword}" 
-                              placeholder="${t.searchPlaceholder}" 
-                              class="w-full pl-3 pr-3 py-2.5 rounded-xl text-[11px] text-white placeholder-slate-400 bg-slate-950 border border-slate-750 dark:border-neon-cyan/30 focus:outline-none focus:ring-1 focus:ring-neon-cyan font-bold"
-                            />
-                          </div>
-                          <button type="submit" class="px-4 py-2.5 bg-gradient-to-r from-neon-purple to-neon-cyan hover:from-neon-cyan hover:to-neon-pink text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-xl transition flex items-center justify-center space-x-1 shrink-0">
-                            <span>${t.searchBtn}</span>
-                          </button>
-                        </form>
+                        <!-- Login / Browse button instead of Search -->
+                        <div class="mt-4 flex justify-center">
+                          ${
+                            !currentUser
+                              ? `<button type="button" onclick="window.location.hash = '#/login';" class="px-8 py-3 bg-gradient-to-r from-neon-purple to-neon-cyan hover:from-neon-cyan hover:to-neon-pink text-slate-950 font-black text-[11px] uppercase tracking-wider rounded-xl transition cursor-pointer shadow-sm hover:scale-[1.02]">
+                                  ${lang === "ta" ? "உள்நுழைக" : "Login to Access"}
+                                </button>`
+                              : `<button type="button" onclick="window.location.hash = '#/books';" class="px-8 py-3 bg-gradient-to-r from-neon-purple to-neon-cyan hover:from-neon-cyan hover:to-neon-pink text-slate-950 font-black text-[11px] uppercase tracking-wider rounded-xl transition cursor-pointer shadow-sm hover:scale-[1.02]">
+                                  ${lang === "ta" ? "பாடநூல்களுக்குச் செல்" : "Browse Textbooks"}
+                                </button>`
+                          }
+                        </div>
                       </div>
                     </section>
 
@@ -1837,155 +1839,42 @@
                       </div>
                     </section>
 
-                    <!-- Prompt to explore books -->
-                    <div class="p-4 bg-blue-600/10 dark:bg-[#111827] border border-blue-600/30 dark:border-neon-cyan/25 rounded-xl flex items-center justify-between">
-                      <div>
-                        <span class="text-[10px] font-black uppercase text-blue-600 dark:text-neon-cyan block leading-tight">
-                          ${lang === "ta" ? "அனைத்து பாடநூல்களும்" : "Filter by Grades"}
-                        </span>
-                        <span class="text-[8px] text-slate-500 dark:text-slate-400 font-bold block mt-0.5">
-                          ${lang === "ta" ? "தரம் 6 - தரம் 13 வரையிலான பாடநூல்கள்" : "Over 13 grades structured accurately"}
-                        </span>
-                      </div>
-                      <button id="home-explore-books-btn" class="p-2 px-3.5 text-[10px] font-black text-slate-950 bg-gradient-to-r from-neon-purple to-neon-cyan hover:scale-[1.03] transition-all rounded-lg">
-                        ${lang === "ta" ? "பார்வையிடு" : "Browse"}
-                      </button>
-                    </div>
-
-                    <!-- STUDENT & USER LOGIN PORTAL SECTION -->
-                    <section class="bg-white dark:bg-[#111827] border border-slate-200 dark:border-neon-purple/20 rounded-2xl p-4.5 space-y-4 shadow-sm relative overflow-hidden">
-                      <div class="absolute top-0 right-0 w-24 h-24 bg-neon-cyan/5 rounded-full blur-xl pointer-events-none"></div>
-                      
-                      ${
-                        !currentUser
-                          ? `
-                        <!-- If Logged out: Show Home tab Student login portal -->
-                        <div class="flex items-center space-x-3 pb-2.5 border-b border-slate-150 dark:border-slate-850">
-                          <div class="p-1.5 bg-blue-100 dark:bg-neon-cyan/15 text-blue-600 dark:text-neon-cyan rounded-xl shrink-0">
-                            <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
-                            </svg>
-                          </div>
+                    <!-- Prompt to explore books / register -->
+                    ${
+                      !currentUser
+                        ? `
+                        <div class="p-4 bg-purple-600/10 dark:bg-[#111827] border border-purple-600/30 dark:border-neon-purple/25 rounded-xl flex items-center justify-between">
                           <div>
-                            <h3 class="font-extrabold text-[12px] text-slate-900 dark:text-white uppercase leading-none">
-                              ${lang === "ta" ? "மாணவர் மற்றும் பயனர் உள்நுழைவு" : "Student & User Login"}
-                            </h3>
-                            <p class="text-[8.5px] text-slate-500 dark:text-slate-400 font-bold block mt-1 uppercase tracking-wider leading-none">
-                              ${lang === "ta" ? "இலவச கற்றல் சேவைகளைப் பெற உள்நுழையவும்" : "Sign in to access student account benefits"}
-                            </p>
-                          </div>
-                        </div>
-
-                        ${
-                          loginError
-                            ? `
-                          <div class="p-2 bg-red-100 text-red-850 dark:bg-red-950/20 dark:text-red-400 border border-red-200 dark:border-red-900/40 rounded-xl text-[9.5px] font-bold text-center leading-snug">
-                            ${loginError}
-                          </div>
-                        `
-                            : ""
-                        }
-
-                        <!-- Register Walkthrough Guide -->
-                        <div class="p-2.5 bg-blue-50/50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 rounded-xl text-[9px] font-semibold text-slate-600 dark:text-slate-350 space-y-1 leading-relaxed">
-                          <div class="flex items-center space-x-1.5 font-bold text-blue-650 dark:text-neon-cyan uppercase text-[8px] tracking-wider">
-                            <svg class="w-3.5 h-3.5 shrink-0 text-blue-550 dark:text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <span>${lang === "ta" ? "புதிய பயனர் கணக்கு உருவாக்குவது எப்படி?" : "How to register a new account?"}</span>
-                          </div>
-                          <p>
-                            ${lang === "ta" 
-                              ? "உங்களிடம் கணக்கு இல்லையா? புதிய கணக்கைத் தொடங்க, மேலே உங்கள் மின்னஞ்சல் (Email) மற்றும் தங்களுக்கு விருப்பமான கடவுச்சொல்லை (Password) உள்ளிட்டு, பின்னர் <b>\"பதிவு செய்\" (Register)</b> பொத்தானை அழுத்தவும்." 
-                              : "If you do not have an account, enter your Email and Password above, and then click the <b>\"Register\"</b> button to instantly create it."}
-                          </p>
-                        </div>
-
-                        <form id="home-auth-form" class="space-y-3" onsubmit="return false;">
-                          <div>
-                            <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
-                              ${lang === "ta" ? "மின்னஞ்சல் முகவரி" : "Email Address"}
-                            </label>
-                            <input 
-                              type="email" 
-                              id="home-auth-email" 
-                              required 
-                              placeholder="student@example.com" 
-                              class="w-full px-3 py-2 text-[10px] font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 border dark:border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-neon-cyan"
-                            />
-                          </div>
-
-                          <div>
-                            <label class="block text-[8px] font-extrabold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
-                              ${lang === "ta" ? "கடவுச்சொல்" : "Password"}
-                            </label>
-                            <input 
-                              type="password" 
-                              id="home-auth-password" 
-                              required 
-                              placeholder="••••••••" 
-                              class="w-full px-3 py-2 text-[10px] font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 border dark:border-slate-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-neon-cyan"
-                            />
-                          </div>
-
-                          <div class="grid grid-cols-2 gap-2 pt-1.5">
-                            <button type="submit" id="home-auth-login-btn" class="py-2.5 bg-gradient-to-r from-neon-purple to-neon-cyan hover:scale-[1.01] text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-sm">
-                              ${lang === "ta" ? "உள்நுழை" : "Log In"}
-                            </button>
-                            <button type="button" id="home-auth-register-btn" class="py-2.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-800 hover:scale-[1.01] font-black text-[10px] uppercase tracking-wider rounded-lg transition-all cursor-pointer">
-                              ${lang === "ta" ? "பதிவு செய்" : "Register"}
-                            </button>
-                          </div>
-                        </form>
-                      `
-                          : `
-                        <!-- If Logged in: Show beautiful user session active card -->
-                        <div class="flex items-center space-x-3">
-                          <div class="p-2 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl shrink-0">
-                            <svg class="w-5.5 h-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                            </svg>
-                          </div>
-                          <div>
-                            <span class="inline-block px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded text-[7.5px] font-black uppercase tracking-wider leading-none">
-                              ${lang === "ta" ? "பயனர் கணக்கு செயலில் உள்ளது" : "Student Session Active"}
+                            <span class="text-[10px] font-black uppercase text-purple-600 dark:text-neon-purple block leading-tight">
+                              ${lang === "ta" ? "புதிய மாணவர் பதிவுகள்" : "Student Registration"}
                             </span>
-                            <h3 class="font-extrabold text-[12px] text-slate-900 dark:text-white truncate leading-tight mt-1.5">
-                              ${currentUserEmail}
-                            </h3>
+                            <span class="text-[8.5px] text-slate-500 dark:text-slate-400 font-bold block mt-0.5">
+                              ${lang === "ta" ? "இப்போதே பதிவு செய்து அனைத்துப் பாடப் புத்தகங்களையும் இலவசமாகப் பெறுங்கள்!" : "Register for free to access and download all academic textbooks!"}
+                            </span>
                           </div>
-                        </div>
-
-                        <div class="p-3 bg-slate-50 dark:bg-[#070b14] border dark:border-slate-850 rounded-xl">
-                          <p class="text-[9.5px] text-slate-500 dark:text-slate-400 leading-normal font-semibold">
-                            ${
-                              lang === "ta"
-                                ? "தற்போது நீங்கள் வெற்றிகரமாக உள்நுழைந்துள்ளீர்கள். அனைத்து அரசு பாடநூல்களையும், கடந்தகால தாள்களையும் தடையின்றி பார்வையிடலாம்."
-                                : "You are now happily authenticated. Feel free to fully search, view, and instantly download any available student text educational content."
-                            }
-                          </p>
-                        </div>
-
-                        <div class="flex items-center justify-between gap-4 pt-1 flex-wrap">
-                          ${
-                            isAdminUser
-                              ? `
-                            <a href="#/admin" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white dark:bg-neon-cyan dark:text-slate-950 font-black text-[9px] uppercase tracking-wider rounded-lg transition-all flex items-center space-x-1.5 cursor-pointer border dark:border-neon-cyan/25">
-                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-                              </svg>
-                              <span>${lang === "ta" ? "நிர்வாக பகுதி" : "Admin Area"}</span>
-                            </a>
-                          `
-                              : ""
-                          }
-                          <button onclick="handleUserSignOut()" class="p-2 px-3 text-red-650 bg-red-100 hover:bg-red-200 dark:bg-red-950/25 dark:text-red-400 dark:border-red-900/40 border transition rounded-lg text-[9px] font-black uppercase cursor-pointer">
-                            ${lang === "ta" ? "வெளியேறு" : "Logout / Disconnect"}
+                          <button id="home-register-promo-btn" class="p-2 px-3.5 text-[10px] font-black text-slate-950 bg-gradient-to-r from-neon-purple to-neon-pink hover:scale-[1.03] transition-all rounded-lg uppercase tracking-wider cursor-pointer">
+                            ${lang === "ta" ? "பதிவு செய்க" : "Register"}
                           </button>
                         </div>
-                      `
-                      }
-                    </section>
+                        `
+                        : `
+                        <div class="p-4 bg-blue-600/10 dark:bg-[#111827] border border-blue-600/30 dark:border-neon-cyan/25 rounded-xl flex items-center justify-between">
+                          <div>
+                            <span class="text-[10px] font-black uppercase text-blue-600 dark:text-neon-cyan block leading-tight">
+                              ${lang === "ta" ? "அனைத்து பாடநூல்களும்" : "Filter by Grades"}
+                            </span>
+                            <span class="text-[8px] text-slate-500 dark:text-slate-400 font-bold block mt-0.5">
+                              ${lang === "ta" ? "தரம் 6 - தரம் 13 வரையிலான பாடநூல்கள்" : "Over 13 grades structured accurately"}
+                            </span>
+                          </div>
+                          <button id="home-explore-books-btn" class="p-2 px-3.5 text-[10px] font-black text-slate-950 bg-gradient-to-r from-neon-purple to-neon-cyan hover:scale-[1.03] transition-all rounded-lg cursor-pointer">
+                            ${lang === "ta" ? "பார்வையிடு" : "Browse"}
+                          </button>
+                        </div>
+                        `
+                    }
+
+
 
                   </div>
                 `
@@ -2598,7 +2487,7 @@
                             <button 
                               type="button" 
                               onclick="window.toggleProfileEdit(false)" 
-                              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-850 text-slate-705 dark:text-slate-200 text-[9px] font-black uppercase tracking-wider rounded-lg transition border dark:border-slate-800 cursor-pointer"
+                              class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-850 text-slate-700 dark:text-slate-200 text-[9px] font-black uppercase tracking-wider rounded-lg transition border dark:border-slate-800 cursor-pointer"
                             >
                               ${lang === "ta" ? "ரத்து செய்" : "Cancel"}
                             </button>
@@ -2616,7 +2505,7 @@
                       <!-- Read-only Details View -->
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-[#111827]/30 dark:bg-slate-950/20 p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm space-y-3">
-                          <h4 class="font-black text-xs text-slate-950 dark:text-white uppercase tracking-wider mb-2 border-b dark:border-slate-905 pb-1.5">${lang === "ta" ? "தனிப்பட்ட விவரங்கள்" : "Personal Particulars"}</h4>
+                          <h4 class="font-black text-xs text-slate-950 dark:text-white uppercase tracking-wider mb-2 border-b dark:border-slate-900 pb-1.5">${lang === "ta" ? "தனிப்பட்ட விவரங்கள்" : "Personal Particulars"}</h4>
                           
                           <div class="space-y-2">
                             <div>
@@ -2635,7 +2524,7 @@
                         </div>
 
                         <div class="bg-[#111827]/30 dark:bg-slate-950/20 p-4 rounded-xl border border-slate-150 dark:border-slate-850 shadow-sm space-y-3">
-                          <h4 class="font-black text-xs text-slate-950 dark:text-white uppercase tracking-wider mb-2 border-b dark:border-slate-905 pb-1.5">${lang === "ta" ? "கல்வி விவரங்கள்" : "Academic Particulars"}</h4>
+                          <h4 class="font-black text-xs text-slate-950 dark:text-white uppercase tracking-wider mb-2 border-b dark:border-slate-900 pb-1.5">${lang === "ta" ? "கல்வி விவரங்கள்" : "Academic Particulars"}</h4>
                           
                           <div class="space-y-2">
                             <div>
@@ -2749,7 +2638,7 @@
                       <p class="text-[9.5px] text-slate-400 font-semibold leading-relaxed">
                         ${lang === "ta" ? "உங்கள் கணக்கில் இருந்து வெளியேற விரும்புகிறீர்களா?" : "Do you want to sign out from your active student dashboard session?"}
                       </p>
-                      <button onclick="handleUserSignOut()" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-[9px] uppercase tracking-wider rounded-xl transition duration-200 cursor-pointer">
+                      <button onclick="handleUserSignOut()" class="px-5 py-2.5 bg-red-650 hover:bg-red-250 dark:bg-red-950/25 dark:text-red-400 dark:border-red-900/40 border transition rounded-lg text-[9px] font-black uppercase cursor-pointer">
                         ${lang === "ta" ? "வெளியேறு (Logout)" : "Disconnect Session"}
                       </button>
                     </div>
@@ -2759,12 +2648,23 @@
                             ? `
                   <!-- TAB 7: LOGIN SCREEN -->
                   <div class="max-w-md mx-auto space-y-5 animate-in fade-in duration-350 py-4">
-                    <div class="space-y-1 text-center">
+                    <div class="space-y-1 text-center relative">
+                      <button onclick="window.location.hash = '#/home'" class="absolute right-0 top-0 p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer" title="${lang === 'ta' ? 'முகப்பு' : 'Home'}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                      </button>
                       <h2 class="text-base font-black text-slate-950 dark:text-white tracking-tight uppercase">
-                        ${lang === "ta" ? "அதிகாரப்பூர்வ உள்நுழைவு" : "Official Authentication"}
+                        ${authMode === "login" 
+                          ? (lang === "ta" ? "அதிகாரப்பூர்வ உள்நுழைவு" : "Official Authentication")
+                          : (lang === "ta" ? "புதிய மாணவர் கணக்கு உருவாக்கம்" : "Create Student Account")
+                        }
                       </h2>
                       <p class="text-[9px] text-slate-500 dark:text-slate-400 font-semibold leading-tight">
-                        ${lang === "ta" ? "நிர்வாக மற்றும் பயனர் கணக்கு மேலாண்மை" : "Admin & User Account Management"}
+                        ${authMode === "login"
+                          ? (lang === "ta" ? "பயனர் கணக்கு மேலாண்மை" : "User Account Management")
+                          : (lang === "ta" ? "முழு சுயவிவரத் தகவல்களுடன் கணக்கைத் தொடங்கவும்" : "Enter profile details to register a new account")
+                        }
                       </p>
                     </div>
 
@@ -2779,62 +2679,150 @@
                           : ""
                       }
 
-                      <!-- Register Walkthrough Guide -->
-                      <div class="p-2.5 bg-blue-50/50 dark:bg-slate-900/50 border border-blue-100 dark:border-slate-800 rounded-xl text-[9px] font-semibold text-slate-600 dark:text-slate-350 space-y-1 leading-relaxed">
-                        <div class="flex items-center space-x-1.5 font-bold text-blue-650 dark:text-neon-cyan uppercase text-[8px] tracking-wider">
-                          <svg class="w-3.5 h-3.5 shrink-0 text-blue-550 dark:text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                          </svg>
-                          <span>${lang === "ta" ? "புதிய பயனர் கணக்கு உருவாக்குவது எப்படி?" : "How to register a new account?"}</span>
-                        </div>
-                        <p>
-                          ${lang === "ta" 
-                            ? "உங்களிடம் கணக்கு இல்லையா? புதிய கணக்கைத் தொடங்க, கீழே உங்கள் மின்னஞ்சல் (Email) மற்றும் தங்களுக்கு விருப்பமான கடவுச்சொல்லை (Password) உள்ளிட்டு, பின்னர் <b>\"பதிவு செய்\" (Register)</b> பொத்தானை அழுத்தவும்." 
-                            : "If you do not have an account, enter your Email and Password below, and then click the <b>\"Register\"</b> button to instantly create it."}
-                        </p>
-                      </div>
+                      ${
+                        authMode === "login"
+                          ? `
+                            <form id="auth-form-submit" class="space-y-3.5" onsubmit="return false;">
+                              <div>
+                                <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">${lang === "ta" ? "மின்னஞ்சல்" : "Email Address"} *</label>
+                                <input 
+                                  type="email" 
+                                  id="auth-email" 
+                                  required 
+                                  placeholder="student@example.com" 
+                                  class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                />
+                              </div>
 
-                      <form id="auth-form-submit" class="space-y-3.5" onsubmit="return false;">
-                        <div>
-                          <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">${lang === "ta" ? "மின்னஞ்சல்" : "Email Address"}</label>
-                          <input 
-                            type="email" 
-                            id="auth-email" 
-                            required 
-                            placeholder="kishanth8254@gmail.com" 
-                            class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
-                          />
-                        </div>
+                              <div>
+                                <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">${lang === "ta" ? "கடவுச்சொல்" : "Password"} *</label>
+                                <input 
+                                  type="password" 
+                                  id="auth-password" 
+                                  required 
+                                  placeholder="••••••••" 
+                                  class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                />
+                              </div>
 
-                        <div>
-                          <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">${lang === "ta" ? "கடவுச்சொல்" : "Password"}</label>
-                          <input 
-                            type="password" 
-                            id="auth-password" 
-                            required 
-                            placeholder="••••••••" 
-                            class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
-                          />
-                        </div>
+                              <div class="space-y-3 pt-1">
+                                <button type="submit" id="auth-login-btn" class="w-full py-2.5 bg-gradient-to-r from-neon-purple to-neon-cyan hover:scale-[1.01] text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-lg transition-all shadow-sm cursor-pointer">
+                                  ${lang === "ta" ? "உள்நுழை" : "Log In"}
+                                </button>
+                                
+                                <button type="button" onclick="authMode = 'register'; renderApp();" class="w-full text-center py-1.5 text-[9.5px] font-extrabold text-neon-purple dark:text-neon-cyan hover:underline transition uppercase tracking-wider">
+                                  ${lang === "ta" ? "புதிய பயனர் கணக்கு உருவாக்க வேண்டுமா? இங்கு பதிவு செய்க" : "Don't have an account? Register Profile"}
+                                </button>
+                              </div>
+                            </form>
+                          `
+                          : `
+                            <form id="auth-register-form-submit" class="space-y-3.5" onsubmit="return false;">
+                              <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-450 mb-1">
+                                    ${lang === "ta" ? "முதல் பெயர்" : "First Name"} *
+                                  </label>
+                                  <input 
+                                    type="text" 
+                                    id="auth-reg-firstName" 
+                                    required 
+                                    placeholder="சரவணன்" 
+                                    class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                  />
+                                </div>
+                                <div>
+                                  <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-450 mb-1">
+                                    ${lang === "ta" ? "இரண்டாம் பெயர்" : "Last Name"} *
+                                  </label>
+                                  <input 
+                                    type="text" 
+                                    id="auth-reg-lastName" 
+                                    required 
+                                    placeholder="குமார்" 
+                                    class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                  />
+                                </div>
+                              </div>
 
-                        <div class="grid grid-cols-2 gap-2 pt-1">
-                          <button type="submit" id="auth-login-btn" class="py-2.5 bg-gradient-to-r from-neon-purple to-neon-cyan hover:scale-[1.01] text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-lg transition-all shadow-sm">
-                            ${lang === "ta" ? "உள்நுழை" : "Log In"}
-                          </button>
-                          <button type="button" id="auth-register-btn" class="py-2.5 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-white border border-slate-250 dark:border-slate-850 hover:scale-[1.01] font-black text-[10px] uppercase tracking-wider rounded-lg transition-all">
-                            ${lang === "ta" ? "பதிவு செய்" : "Register"}
-                          </button>
-                        </div>
-                      </form>
+                              <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-450 mb-1">
+                                    ${lang === "ta" ? "பிறந்த திகதி" : "Date of Birth"}
+                                  </label>
+                                  <input 
+                                    type="date" 
+                                    id="auth-reg-dob" 
+                                    class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                  />
+                                </div>
+                                <div>
+                                  <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-555 dark:text-slate-450 mb-1">
+                                    ${lang === "ta" ? "தொலைபேசி எண்" : "Phone Number"}
+                                  </label>
+                                  <input 
+                                    type="tel" 
+                                    id="auth-reg-phone" 
+                                    placeholder="0771234567" 
+                                    class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                  />
+                                </div>
+                              </div>
 
-                      <div class="pt-2 border-t border-slate-150 dark:border-slate-850/50 text-center">
-                        <span class="text-[8.5px] font-bold text-slate-400 dark:text-slate-500">
-                          ${lang === "ta" ? "நிர்வாக மின்னஞ்சல்: kishanth8254@gmail.com" : "Bootstrapped Admin: kishanth8254@gmail.com"}
-                        </span>
-                      </div>
+                              <div>
+                                <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-450 mb-1">
+                                  ${lang === "ta" ? "பாடசாலை" : "School"}
+                                </label>
+                                <input 
+                                  type="text" 
+                                  id="auth-reg-school" 
+                                  placeholder="யாழ் / இந்து கல்லூரி" 
+                                  class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none"
+                                />
+                              </div>
+
+                              <div>
+                                <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-450 mb-1">
+                                  ${lang === "ta" ? "மின்னஞ்சல்" : "Email Address"} *
+                                </label>
+                                <input 
+                                  type="email" 
+                                  id="auth-reg-email" 
+                                  required 
+                                  placeholder="student@example.com" 
+                                  class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                />
+                              </div>
+
+                              <div>
+                                <label class="block text-[8.5px] font-extrabold uppercase tracking-wider text-slate-550 dark:text-slate-450 mb-1">
+                                  ${lang === "ta" ? "கடவுச்சொல்" : "Password"} *
+                                </label>
+                                <input 
+                                  type="password" 
+                                  id="auth-reg-password" 
+                                  required 
+                                  placeholder="••••••••" 
+                                  class="w-full px-3 py-2.5 rounded-lg text-[10px] font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-950 border dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-neon-purple"
+                                />
+                              </div>
+
+                              <div class="space-y-3 pt-1">
+                                <button type="button" id="auth-register-btn" class="w-full py-2.5 bg-gradient-to-r from-neon-purple to-neon-cyan hover:scale-[1.01] text-slate-950 font-black text-[10px] uppercase tracking-wider rounded-lg transition-all shadow-sm cursor-pointer">
+                                  ${lang === "ta" ? "பதிவு செய்து கணக்கைத் தொடங்கு" : "Register & Create Profile"}
+                                </button>
+                                
+                                <button type="button" onclick="authMode = 'login'; renderApp();" class="w-full text-center py-1.5 text-[9.5px] font-extrabold text-neon-purple dark:text-neon-cyan hover:underline transition uppercase tracking-wider">
+                                  ${lang === "ta" ? "ஏற்கனவே கணக்கு உள்ளதா? உள்நுழையவும்" : "Already have an account? Log In"}
+                                </button>
+                              </div>
+                            </form>
+                          `
+                      }
                     </div>
                   </div>
                 `
+
                                 : currentTab === "admin"
                                   ? `
                   <!-- TAB 8: ADMIN CONTROL PANEL -->
@@ -2879,12 +2867,8 @@
                             ${lang === "ta" ? "அனுமதி மறுக்கப்பட்டுள்ளது!" : "Administrative Privileges Required"}
                           </h4>
                           <p class="text-[9.5px] text-slate-500 dark:text-slate-400 font-semibold leading-relaxed">
-                            ${lang === "ta" ? "நீங்கள் வெற்றிகரமாக உள்நுழைந்துள்ளீர்கள், ஆனால் இந்த வளங்களை மாற்றுவதற்கு உங்களிடம் போதுமான அனுமதிகள் இல்லை." : "You have authenticated successfully, however only bootstrapped platform administrators are granted database mutation privileges."}
+                            ${lang === "ta" ? "நீங்கள் வெற்றிகரமாக உள்நுழைந்துள்ளீர்கள், ஆனால் இந்த வளங்களை மாற்றுவதற்கு உங்களிடம் போதுமான அனுமதிகள் இல்லை." : "You have authenticated successfully, however only administrators are granted database mutation privileges."}
                           </p>
-                        </div>
-                        <div class="bg-slate-150 dark:bg-slate-900 p-2.5 rounded-xl text-center">
-                          <span class="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest block mb-0.5">${lang === "ta" ? "தேவைப்படும் மின்னஞ்சல்" : "Admin standard account:"}</span>
-                          <span class="text-[10px] font-black text-slate-800 dark:text-white">kishanth8254@gmail.com</span>
                         </div>
                         <button onclick="window.location.hash = '#/books'" class="w-full mt-2.5 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-wider rounded-lg transition-all cursor-pointer shadow-sm">
                           ${lang === "ta" ? "பாடநூல்களுக்குச் செல்" : "Go to Textbooks"}
@@ -3280,27 +3264,6 @@
             };
           });
 
-        const homeSearchForm = document.getElementById("home-search-form");
-        if (homeSearchForm) {
-          homeSearchForm.onsubmit = (e) => {
-            e.preventDefault();
-            const input = document.getElementById("home-search-input");
-            if (input) {
-              searchKeyword = input.value;
-              if (
-                searchKeyword.toLowerCase().includes("paper") ||
-                searchKeyword.toLowerCase().includes("வினா") ||
-                searchKeyword.includes("20")
-              ) {
-                currentTab = "papers";
-              } else {
-                currentTab = "books";
-              }
-              renderApp();
-            }
-          };
-        }
-
         const exploreBooksBtn = document.getElementById(
           "home-explore-books-btn",
         );
@@ -3311,6 +3274,16 @@
             selectedSubject = "All";
             searchKeyword = "";
             renderApp();
+          };
+        }
+
+        const registerPromoBtn = document.getElementById(
+          "home-register-promo-btn",
+        );
+        if (registerPromoBtn) {
+          registerPromoBtn.onclick = () => {
+            authMode = "register";
+            window.location.hash = "#/login";
           };
         }
 
