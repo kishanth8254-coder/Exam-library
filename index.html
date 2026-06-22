@@ -103,8 +103,121 @@
       </div>
     </div>
 
+    <!-- Custom Theme Alert Modal -->
+    <div id="custom-alert-modal" class="fixed inset-0 z-[100] hidden items-center justify-center pointer-events-none">
+      <div id="custom-alert-backdrop" class="fixed inset-0 bg-[#050811]/80 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
+      <div id="custom-alert-content" class="relative bg-white dark:bg-[#111827] w-full max-w-sm mx-4 p-6 rounded-2xl border border-slate-200 dark:border-neon-purple/30 shadow-2xl transform scale-95 opacity-0 transition-all duration-300 pointer-events-auto glow-purple flex flex-col items-center">
+        <div class="w-12 h-12 rounded-full bg-neon-purple/10 flex items-center justify-center text-neon-purple mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <p id="custom-alert-message" class="text-sm font-bold text-slate-800 dark:text-slate-200 text-center mb-5"></p>
+        <button id="custom-alert-close" class="w-full py-2.5 bg-gradient-to-r from-neon-purple to-neon-cyan hover:scale-[1.02] text-slate-950 font-black text-[11px] uppercase tracking-wider rounded-xl transition-all shadow-sm">
+          OK / சரி
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Theme Confirm Modal -->
+    <div id="custom-confirm-modal" class="fixed inset-0 z-[100] hidden items-center justify-center pointer-events-none">
+      <div id="custom-confirm-backdrop" class="fixed inset-0 bg-[#050811]/80 backdrop-blur-sm opacity-0 transition-opacity duration-300 pointer-events-auto"></div>
+      <div id="custom-confirm-content" class="relative bg-white dark:bg-[#111827] w-full max-w-sm mx-4 p-6 rounded-2xl border border-slate-200 dark:border-neon-purple/30 shadow-2xl transform scale-95 opacity-0 transition-all duration-300 pointer-events-auto glow-purple flex flex-col items-center">
+        <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-500/10 flex items-center justify-center text-red-600 dark:text-red-400 mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
+        </div>
+        <h3 class="text-base font-black text-slate-900 dark:text-white mb-2 text-center" id="custom-confirm-title"></h3>
+        <p id="custom-confirm-message" class="text-xs font-semibold text-slate-500 dark:text-slate-400 text-center mb-6"></p>
+        <div class="grid grid-cols-2 gap-3 w-full">
+          <button id="custom-confirm-cancel" class="py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-black text-[11px] uppercase tracking-wider rounded-xl transition-all">
+            No / இல்லை
+          </button>
+          <button id="custom-confirm-ok" class="py-2.5 bg-red-600 hover:bg-red-700 text-white font-black text-[11px] uppercase tracking-wider rounded-xl transition-all shadow-sm">
+            OK / சரி
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- MAIN EXECUTABLE SCRIPT (COMPLETELY STANDALONE PURE JAVASCRIPT & ESTABLISHED CDN LIBRARIES) -->
     <script type="module">
+      // --- Custom Confirm Modal for Logout ---
+      window.showLogoutConfirm = function() {
+        const modal = document.getElementById('custom-confirm-modal');
+        const backdrop = document.getElementById('custom-confirm-backdrop');
+        const content = document.getElementById('custom-confirm-content');
+        const titleEl = document.getElementById('custom-confirm-title');
+        const msgEl = document.getElementById('custom-confirm-message');
+        const closeBtn = document.getElementById('custom-confirm-cancel');
+        const okBtn = document.getElementById('custom-confirm-ok');
+        
+        titleEl.textContent = window.lang === "ta" ? "வெளியேற வேண்டுமா?" : "Ready to log out?";
+        msgEl.textContent = window.lang === "ta" ? "நீங்கள் உங்கள் கணக்கிலிருந்து வெளியேற விரும்புகிறீர்களா?" : "Are you sure you want to sign out of your account?";
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        setTimeout(() => {
+          backdrop.classList.remove('opacity-0');
+          backdrop.classList.add('opacity-100');
+          content.classList.remove('scale-95', 'opacity-0');
+          content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+        
+        const closeModal = () => {
+          backdrop.classList.remove('opacity-100');
+          backdrop.classList.add('opacity-0');
+          content.classList.remove('scale-100', 'opacity-100');
+          content.classList.add('scale-95', 'opacity-0');
+          setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+          }, 300);
+        };
+
+        closeBtn.onclick = closeModal;
+        okBtn.onclick = () => {
+          closeModal();
+          if (window.handleUserSignOut) {
+            window.handleUserSignOut();
+          }
+        };
+      };
+
+      // --- Custom Alert Override ---
+      window.originalAlert = window.alert;
+      window.alert = function(message) {
+        const modal = document.getElementById('custom-alert-modal');
+        const backdrop = document.getElementById('custom-alert-backdrop');
+        const content = document.getElementById('custom-alert-content');
+        const msgEl = document.getElementById('custom-alert-message');
+        const closeBtn = document.getElementById('custom-alert-close');
+        
+        msgEl.textContent = message;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        setTimeout(() => {
+          backdrop.classList.remove('opacity-0');
+          backdrop.classList.add('opacity-100');
+          content.classList.remove('scale-95', 'opacity-0');
+          content.classList.add('scale-100', 'opacity-100');
+        }, 10);
+        
+        closeBtn.onclick = () => {
+          backdrop.classList.remove('opacity-100');
+          backdrop.classList.add('opacity-0');
+          content.classList.remove('scale-100', 'opacity-100');
+          content.classList.add('scale-95', 'opacity-0');
+          setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+          }, 300);
+        };
+      };
+
       // Load standard production-ready Firebase client packages directly via Google static Web CDNs
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
       import {
@@ -1624,7 +1737,7 @@
                         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping shrink-0"></span>
                         <span class="text-[9px] font-extrabold text-blue-600 dark:text-emerald-400 capitalize tracking-wider truncate" title="${currentUserEmail}">${currentUserEmail.split('@')[0]}</span>
                       </div>
-                      <button onclick="handleUserSignOut()" class="w-full py-1.5 px-3 bg-red-600/15 hover:bg-red-600/25 text-red-600 dark:text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-lg text-[9px] font-black uppercase transition-all tracking-wider cursor-pointer">
+                      <button onclick="window.showLogoutConfirm()" class="w-full py-1.5 px-3 bg-red-600/15 hover:bg-red-600/25 text-red-600 dark:text-red-400 border border-red-500/20 hover:border-red-500/40 rounded-lg text-[9px] font-black uppercase transition-all tracking-wider cursor-pointer">
                         ${lang === "ta" ? "வெளியேறு" : "Logout"}
                       </button>
                     </div>
@@ -1737,7 +1850,7 @@
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                         </svg>
                       </button>
-                      <button onclick="handleUserSignOut()" class="p-1 px-1.5 text-red-500 dark:text-red-400 font-extrabold text-[8.5px] uppercase bg-red-500/15 hover:bg-red-500/25 border border-red-500/10 hover:border-red-500/25 rounded-md transition cursor-pointer">
+                      <button onclick="window.showLogoutConfirm()" class="p-1 px-1.5 text-red-500 dark:text-red-400 font-extrabold text-[8.5px] uppercase bg-red-500/15 hover:bg-red-500/25 border border-red-500/10 hover:border-red-500/25 rounded-md transition cursor-pointer">
                         ${lang === "ta" ? "வெளியேறு" : "Logout"}
                       </button>
                     </div>
@@ -1745,7 +1858,7 @@
                     <div class="flex items-center space-x-1.5 p-1 px-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25">
                       <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping shrink-0"></span>
                       <span class="text-[8px] font-black text-emerald-600 dark:text-emerald-400 capitalize mr-1 truncate max-w-[50px]">${currentUserEmail.split('@')[0]}</span>
-                      <button onclick="handleUserSignOut()" class="p-1 px-1.5 bg-red-600/15 hover:bg-red-600/25 text-red-500 dark:text-red-400 rounded-md text-[8px] font-black uppercase transition-all cursor-pointer border border-red-500/10 shrink-0">
+                      <button onclick="window.showLogoutConfirm()" class="p-1 px-1.5 bg-red-600/15 hover:bg-red-600/25 text-red-500 dark:text-red-400 rounded-md text-[8px] font-black uppercase transition-all cursor-pointer border border-red-500/10 shrink-0">
                         ${lang === "ta" ? "வெளியேறு" : "Logout"}
                       </button>
                     </div>
@@ -2654,7 +2767,7 @@
                       <p class="text-[9.5px] text-slate-400 font-semibold leading-relaxed">
                         ${lang === "ta" ? "உங்கள் கணக்கில் இருந்து வெளியேற விரும்புகிறீர்களா?" : "Do you want to sign out from your active student dashboard session?"}
                       </p>
-                      <button onclick="handleUserSignOut()" class="px-5 py-2.5 bg-red-650 hover:bg-red-250 dark:bg-red-950/25 dark:text-red-400 dark:border-red-900/40 border transition rounded-lg text-[9px] font-black uppercase cursor-pointer">
+                      <button onclick="window.showLogoutConfirm()" class="px-5 py-2.5 bg-red-650 hover:bg-red-250 dark:bg-red-950/25 dark:text-red-400 dark:border-red-900/40 border transition rounded-lg text-[9px] font-black uppercase cursor-pointer">
                         ${lang === "ta" ? "வெளியேறு (Logout)" : "Disconnect Session"}
                       </button>
                     </div>
@@ -2864,7 +2977,7 @@
                           ${currentUserEmail ? (lang === "ta" ? `கணக்கு: ${currentUserEmail}` : `Signed in as: ${currentUserEmail}`) : ""}
                         </p>
                       </div>
-                      <button onclick="handleUserSignOut()" class="p-1.5 px-3 bg-red-100 border border-red-200 hover:bg-red-200 text-red-600 dark:bg-red-950/20 dark:border-red-900/60 dark:text-red-400 transition rounded-lg text-[9px] font-black uppercase">
+                      <button onclick="window.showLogoutConfirm()" class="p-1.5 px-3 bg-red-100 border border-red-200 hover:bg-red-200 text-red-600 dark:bg-red-950/20 dark:border-red-900/60 dark:text-red-400 transition rounded-lg text-[9px] font-black uppercase">
                         ${lang === "ta" ? "வெளியேறு" : "Logout"}
                       </button>
                     </div>
