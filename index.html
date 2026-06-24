@@ -2420,7 +2420,7 @@
       }
 
       window.toggleProfileEdit = (state) => {
-        isEditingProfile = state;
+        isEditingProfile = state !== undefined ? state : !isEditingProfile;
         editProfileError = null;
         editProfileSuccess = null;
         renderApp();
@@ -2439,19 +2439,19 @@
           
           let grade = userProfile?.grade || "";
           let gradeFilterEnabled = userProfile?.gradeFilterEnabled || false;
-          if (userProfile?.accountType === "Student" || (currentUser.email !== "kishanth8254@gmail.com" && userProfile?.role !== "admin")) {
+          if (userProfile?.accountType === "Student" || (currentUser?.email !== "kishanth8254@gmail.com" && userProfile?.role !== "admin")) {
             grade = document.getElementById("profile-edit-grade")?.value || "";
             gradeFilterEnabled = document.getElementById("profile-edit-gradeFilter")?.checked || false;
           }
 
           const profileData = {
             id: currentUser.uid,
-            email: currentUser.email,
-            role: userProfile?.role || (currentUser.email === "kishanth8254@gmail.com" ? "admin" : "student"),
+            email: currentUser?.email || "",
+            role: userProfile?.role || (currentUser?.email === "kishanth8254@gmail.com" ? "admin" : "student"),
             accountType: userProfile?.accountType || "Student",
             firstName: firstName.trim(),
             lastName: lastName.trim(),
-            name: (firstName.trim() + " " + lastName.trim()).trim() || currentUser.email.split('@')[0],
+            name: (firstName.trim() + " " + lastName.trim()).trim() || (currentUser?.email ? currentUser.email.split('@')[0] : 'User'),
             dob: dob,
             school: school.trim(),
             phone: phone.trim(),
@@ -3838,7 +3838,7 @@
                         isEditingProfile
                           ? `
                         <div class="flex items-center space-x-2">
-                          <button type="button" onclick="window.saveUserProfileDetails()" class="px-4 py-2 bg-gradient-to-r from-green-555 to-emerald-500 text-slate-950 font-black text-[9px] uppercase tracking-wider rounded-lg transition duration-200 cursor-pointer shadow-sm">
+                          <button type="button" onclick="window.saveUserProfileDetails()" class="px-4 py-2 bg-gradient-to-r from-green-400 to-emerald-500 hover:from-emerald-500 hover:to-green-400 text-slate-950 font-black text-[9px] uppercase tracking-wider rounded-lg transition duration-200 cursor-pointer shadow-sm">
                             ${lang === "ta" ? "சேமி" : "Save Changes"}
                           </button>
                           <button type="button" onclick="window.toggleProfileEdit()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-[#111827] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border dark:border-slate-800 font-black text-[9px] uppercase tracking-wider rounded-lg transition duration-200 cursor-pointer">
