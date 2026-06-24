@@ -522,7 +522,7 @@
           heroTitleAccent: "அனைத்து கற்றல் வளங்களும்",
           heroTitleSuffix: "ஒரே இடத்தில்!",
           heroDesc:
-            "பாடசாலைத் தரம் 6 முதல் உயர்தர (A/L) மாணவர்களுக்கான பாடப்புத்தகங்கள், கடந்தகால வினாத்தாள்களை இலவசமாக இலகுவில் பதிவிறக்கம் செய்யுங்கள்.",
+            "பாடசாலைத் தரம் 6 முதல் உயர்தர (A/L) மாணவர்களுக்கான பாடப்புத்தகங்கள், கடந்தகால வினாத்தாள்கள், கல்வி வீடியோக்கள் மற்றும் MCQ வினாக்களை இலவசமாகப் பெறுங்கள்.",
           searchPlaceholder: "வினாத்தாள்கள், பாடப்புத்தகங்களை தேடுக...",
           searchBtn: "தேடுக",
           allTextbooks: "அனைத்து பாடப்புத்தகங்கள்",
@@ -595,7 +595,7 @@
           heroTitleAccent: "For Tamil Medium",
           heroTitleSuffix: "In One Place!",
           heroDesc:
-            "Download free educational textbooks, marking schemes, and past papers tailored for Grade 6 to Advanced Level (A/L) students in Sri Lanka.",
+            "Access free educational textbooks, past papers, video lessons, and MCQ questions tailored for Grade 6 to Advanced Level (A/L) students in Sri Lanka.",
           searchPlaceholder: "Search papers, textbooks, or subjects...",
           searchBtn: "Search",
           allTextbooks: "All Textbooks",
@@ -2973,7 +2973,7 @@
                                   ${lang === "ta" ? "உள்நுழைக" : "Login to Access"}
                                 </button>`
                               : `<button type="button" onclick="window.location.hash = '#/books';" class="px-8 py-3 bg-gradient-to-r from-neon-purple to-neon-cyan hover:from-neon-cyan hover:to-neon-pink text-slate-950 font-black text-[11px] uppercase tracking-wider rounded-xl transition cursor-pointer shadow-sm hover:scale-[1.02]">
-                                  ${lang === "ta" ? "பாடநூல்களுக்குச் செல்" : "Browse Textbooks"}
+                                  ${lang === "ta" ? "கற்றல் வளங்களுக்குச் செல்" : "Browse Resources"}
                                 </button>`
                           }
                         </div>
@@ -2981,7 +2981,7 @@
                     </section>
 
                     <!-- Statistics counter grids -->
-                    <div class="grid grid-cols-2 gap-3.5">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
                       <div class="bg-white dark:bg-[#111827] p-3 rounded-xl border border-slate-200 dark:border-neon-purple/10 text-center flex flex-col justify-center">
                         <span class="text-xl font-black text-blue-600 dark:text-neon-purple text-glow-purple">100+</span>
                         <span class="text-[8px] text-slate-500 dark:text-slate-450 uppercase font-black tracking-wider mt-1">
@@ -2994,11 +2994,23 @@
                           ${lang === "ta" ? "கடந்தகாலத்தாள்கள்" : "Verified Past Papers"}
                         </span>
                       </div>
+                      <div class="bg-white dark:bg-[#111827] p-3 rounded-xl border border-slate-200 dark:border-green-500/10 text-center flex flex-col justify-center">
+                        <span class="text-xl font-black text-green-600 dark:text-green-500 text-glow-green">20+</span>
+                        <span class="text-[8px] text-slate-500 dark:text-slate-450 uppercase font-black tracking-wider mt-1">
+                          ${lang === "ta" ? "கல்வி வீடியோக்கள்" : "Educational Videos"}
+                        </span>
+                      </div>
+                      <div class="bg-white dark:bg-[#111827] p-3 rounded-xl border border-slate-200 dark:border-amber-500/10 text-center flex flex-col justify-center">
+                        <span class="text-xl font-black text-amber-600 dark:text-amber-500 text-glow-amber">1K+</span>
+                        <span class="text-[8px] text-slate-500 dark:text-slate-450 uppercase font-black tracking-wider mt-1">
+                          ${lang === "ta" ? "MCQ வினாக்கள்" : "MCQ Questions"}
+                        </span>
+                      </div>
                     </div>
 
                     <!-- Sleek Information Bento blocks -->
-                    <section class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-neon-purple/10 hover:border-neon-purple/30 transition flex items-start space-x-3">
+                    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-neon-purple/10 hover:border-neon-purple/30 transition flex items-start space-x-3 cursor-pointer" onclick="window.location.hash = '#/books'">
                         <div class="p-2.5 bg-blue-100 dark:bg-neon-purple/10 text-blue-600 dark:text-neon-purple rounded-xl shrink-0">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
@@ -3010,7 +3022,7 @@
                         </div>
                       </div>
 
-                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-neon-pink/10 transition flex items-start space-x-3">
+                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-neon-pink/10 transition hover:border-neon-pink/30 flex items-start space-x-3 cursor-pointer" onclick="window.location.hash = '#/papers'">
                         <div class="p-2.5 bg-pink-100 dark:bg-neon-pink/10 text-pink-600 dark:text-neon-pink rounded-xl shrink-0">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 011.414 0 3.42 3.42 0 001.946.806 3.42 3.42 0 010 1.946 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 010 1.414 3.42 3.42 0 00.806 1.946 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-1.414 0 3.42 3.42 0 00-1.946.806 3.4"></path>
@@ -3022,15 +3034,28 @@
                         </div>
                       </div>
 
-                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-neon-cyan/10 transition flex items-start space-x-3">
-                        <div class="p-2.5 bg-cyan-100 dark:bg-neon-cyan/10 text-cyan-600 dark:text-neon-cyan rounded-xl shrink-0">
+                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-green-500/10 transition hover:border-green-500/30 flex items-start space-x-3 cursor-pointer" onclick="window.location.hash = '#/videos'">
+                        <div class="p-2.5 bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-500 rounded-xl shrink-0">
                           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                           </svg>
                         </div>
                         <div>
-                          <h4 class="font-extrabold text-xs text-slate-900 dark:text-white dark:text-glow-cyan">${t.freeDownload}</h4>
-                          <p class="text-[9.5px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed font-semibold">${t.freeDownloadDesc}</p>
+                          <h4 class="font-extrabold text-xs text-slate-900 dark:text-white dark:text-glow-green">${lang === 'ta' ? 'கல்வி வீடியோக்கள்' : 'Educational Videos'}</h4>
+                          <p class="text-[9.5px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed font-semibold">${lang === 'ta' ? 'பாடங்களை எளிதில் விளங்கும் வகையிலான வீடியோக்கள்' : 'High quality video lessons for all subjects'}</p>
+                        </div>
+                      </div>
+
+                      <div class="bg-white dark:bg-[#111827] p-4 rounded-xl border border-slate-150 dark:border-amber-500/10 transition hover:border-amber-500/30 flex items-start space-x-3 cursor-pointer" onclick="window.location.hash = '#/mcqs'">
+                        <div class="p-2.5 bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-500 rounded-xl shrink-0">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                          </svg>
+                        </div>
+                        <div>
+                          <h4 class="font-extrabold text-xs text-slate-900 dark:text-white dark:text-glow-amber">${lang === 'ta' ? 'MCQ வினாக்கள்' : 'MCQ Questions'}</h4>
+                          <p class="text-[9.5px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed font-semibold">${lang === 'ta' ? 'பயிற்சி செய்ய பல தேர்வு வினாக்கள்' : 'Practice with multiple choice questions'}</p>
                         </div>
                       </div>
                     </section>
@@ -3045,7 +3070,7 @@
                               ${lang === "ta" ? "புதிய மாணவர் பதிவுகள்" : "Student Registration"}
                             </span>
                             <span class="text-[8.5px] text-slate-500 dark:text-slate-400 font-bold block mt-0.5">
-                              ${lang === "ta" ? "இப்போதே பதிவு செய்து அனைத்துப் பாடப் புத்தகங்களையும் இலவசமாகப் பெறுங்கள்!" : "Register for free to access and download all academic textbooks!"}
+                              ${lang === "ta" ? "இப்போதே பதிவு செய்து அனைத்துப் கற்றல் வளங்களையும் இலவசமாகப் பெறுங்கள்!" : "Register for free to access and download all academic resources!"}
                             </span>
                           </div>
                           <button id="home-register-promo-btn" class="p-2 px-3.5 text-[10px] font-black text-slate-950 bg-gradient-to-r from-neon-purple to-neon-pink hover:scale-[1.03] transition-all rounded-lg uppercase tracking-wider cursor-pointer">
