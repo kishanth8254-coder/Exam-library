@@ -53,7 +53,9 @@ service cloud.firestore {
                (!('lastName' in data) || data.lastName is string) &&
                (!('dob' in data) || data.dob is string) &&
                (!('school' in data) || data.school is string) &&
-               (!('phone' in data) || data.phone is string);
+               (!('phone' in data) || data.phone is string) &&
+               (!('banned' in data) || data.banned is bool) &&
+               (!('customPassword' in data) || data.customPassword is string);
       }
 
       allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
@@ -134,6 +136,41 @@ service cloud.firestore {
       allow read, list: if true;
       allow create: if isAdmin() && isValidId(categoryId) && isValidCategory(incoming()) && incoming().createdAt == request.time;
       allow update: if isAdmin() && isValidId(categoryId) && isValidCategory(incoming()) && incoming().createdAt == existing().createdAt;
+      allow delete: if isAdmin();
+    }
+    // 6. Settings Collection
+    match /settings/{settingId} {
+      allow read, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // 7. Support Messages Collection
+    match /supportMessages/{messageId} {
+      allow create: if isValidId(messageId) && 
+                    incoming().id == messageId &&
+                    incoming().fullName is string &&
+                    incoming().email is string &&
+                    incoming().message is string &&
+                    incoming().status == "pending" && 
+                    incoming().createdAt == request.time &&
+                    (!('userId' in incoming()) || (isSignedIn() && incoming().userId == request.auth.uid));
+
+      allow get: if isAdmin() || !('userId' in resource.data) || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      allow update: if isAdmin() && 
+                    incoming().createdAt == existing().createdAt &&
+                    incoming().repliedAt == request.time;
+
+      allow delete: if isAdmin();
+    }
+
+    // 8. Traffic / Analytics Collection
+    match /traffic/{trafficId} {
+      allow read, list: if true;
+      allow create, update: if true;
       allow delete: if isAdmin();
     }
   }

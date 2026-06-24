@@ -120,6 +120,71 @@
         "email",
         "role"
       ]
+    },
+    "SupportMessage": {
+      "title": "SupportMessage",
+      "description": "A user-submitted support message and admin reply",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "fullName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "replied"
+          ]
+        },
+        "reply": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "object",
+          "description": "Firestore Server Timestamp"
+        },
+        "repliedAt": {
+          "type": "object",
+          "description": "Firestore Server Timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "fullName",
+        "email",
+        "message",
+        "status",
+        "createdAt"
+      ]
+    },
+    "Traffic": {
+      "title": "Traffic",
+      "description": "Daily traffic logging counts",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "date",
+        "count"
+      ]
     }
   },
   "firestore": {
@@ -134,6 +199,14 @@
     "/users/{userId}": {
       "schema": "User",
       "description": "Collection of signed-up users and admins"
+    },
+    "/supportMessages/{messageId}": {
+      "schema": "SupportMessage",
+      "description": "Collection of customer support requests and replies"
+    },
+    "/traffic/{trafficId}": {
+      "schema": "Traffic",
+      "description": "Daily visit hits tracker"
     }
   }
 }
