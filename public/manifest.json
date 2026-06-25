@@ -1,0 +1,23 @@
+{
+  "name": "Exam Library",
+  "short_name": "ExamLibrary",
+  "description": "Download free educational textbooks, past papers, video lessons, and MCQ questions.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "https://lh3.googleusercontent.com/d/1rchbJC1cc4cnVzdJrORhdrEb6TQ_41PY",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://lh3.googleusercontent.com/d/1rchbJC1cc4cnVzdJrORhdrEb6TQ_41PY",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
