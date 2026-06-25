@@ -4266,6 +4266,8 @@
                                     <option value="Student">${lang === "ta" ? "மாணவர் (Student)" : "Student"}</option>
                                     <option value="Teacher">${lang === "ta" ? "ஆசிரியர் (Teacher)" : "Teacher"}</option>
                                     <option value="Parent">${lang === "ta" ? "பெற்றோர் (Parent)" : "Parent"}</option>
+                                    <option value="Edu">${lang === "ta" ? "கல்வி அதிகாரி (Edu)" : "Education Official"}</option>
+                                    <option value="Other">${lang === "ta" ? "ஏனையவை (Other)" : "Other"}</option>
                                   </select>
                                 </div>
                               </div>
@@ -4473,6 +4475,7 @@
                           <option value="Student" ${editingUserObj.accountType === 'Student' ? 'selected' : ''}>Student</option>
                           <option value="Teacher" ${editingUserObj.accountType === 'Teacher' ? 'selected' : ''}>Teacher</option>
                           <option value="Parent" ${editingUserObj.accountType === 'Parent' ? 'selected' : ''}>Parent</option>
+                          <option value="Edu" ${editingUserObj.accountType === 'Edu' ? 'selected' : ''}>Education Official</option>
                           <option value="Other" ${editingUserObj.accountType === 'Other' ? 'selected' : ''}>Other</option>
                         </select>
                       </div>
