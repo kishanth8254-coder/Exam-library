@@ -177,6 +177,27 @@
       </div>
     </div>
 
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 z-[100] md:left-auto md:right-4 md:w-96 bg-gradient-to-r from-neon-purple to-neon-cyan p-[2px] rounded-2xl shadow-2xl animate-in slide-in-from-bottom-8 fade-in duration-500">
+      <div class="bg-slate-900 rounded-[14px] p-3 flex items-center justify-between w-full">
+        <div class="flex items-center space-x-3">
+          <img src="https://wsrv.nl/?url=lh3.googleusercontent.com/d/1rchbJC1cc4cnVzdJrORhdrEb6TQ_41PY&w=192&h=192&fit=contain&output=png" class="w-10 h-10 rounded-lg bg-white p-1" />
+          <div>
+            <h4 class="text-white font-black text-[11px] uppercase tracking-wider">Exam Library App</h4>
+            <p class="text-slate-400 text-[9px] font-bold" id="pwa-install-desc">Install app for a better experience</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="window.hideInstallPromotion()" class="p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer bg-slate-800 rounded-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+          <button onclick="window.installPWA()" class="px-3 py-1.5 bg-gradient-to-r from-neon-purple to-neon-cyan text-slate-950 font-black text-[10px] uppercase rounded-lg shadow-sm cursor-pointer hover:scale-105 transition-transform">
+            Install
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- MAIN EXECUTABLE SCRIPT (COMPLETELY STANDALONE PURE JAVASCRIPT & ESTABLISHED CDN LIBRARIES) -->
     <script type="module">
       window.closeMCQModal = () => {
@@ -4960,7 +4981,40 @@
       syncData();
       handleRoute();
 
-      // --- PWA Service Worker Registration ---
+      // --- PWA Service Worker Registration & Install Banner ---
+      let deferredPrompt;
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = e;
+        // Show the install banner
+        const installBanner = document.getElementById('pwa-install-banner');
+        if (installBanner) {
+          installBanner.classList.remove('hidden');
+          installBanner.classList.add('flex');
+        }
+      });
+
+      window.hideInstallPromotion = () => {
+        const installBanner = document.getElementById('pwa-install-banner');
+        if (installBanner) {
+          installBanner.classList.add('hidden');
+          installBanner.classList.remove('flex');
+        }
+      };
+
+      window.installPWA = async () => {
+        window.hideInstallPromotion();
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to the install prompt: ${outcome}`);
+          deferredPrompt = null;
+        }
+      };
+
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').then(registration => {
