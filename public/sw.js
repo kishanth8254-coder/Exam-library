@@ -1,19 +1,16 @@
-const CACHE_NAME = 'exam-library-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/firebase-applet-config.json'
-];
+const CACHE_NAME = 'exam-library-pwa-v2';
 
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(['/', '/index.html']);
+    }).catch(err => console.error('Cache addAll error:', err))
   );
 });
 
 self.addEventListener('activate', event => {
+  self.clients.claim();
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -25,23 +22,19 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response; // Return from cache
+    fetch(event.request).catch(() => {
+      return caches.match(event.request).then(response => {
+        if (response) return response;
+        if (event.request.mode === 'navigate') {
+          return caches.match('/index.html');
         }
-        // If not in cache, fetch from network
-        return fetch(event.request).catch(() => {
-          // Fallback if network fails and resource is not in cache
-          if (event.request.mode === 'navigate') {
-             return caches.match('/index.html');
-          }
-        });
-      })
+      });
+    })
   );
 });
