@@ -530,7 +530,92 @@
         },
       ];
 
-      const DEFAULT_PAST_PAPERS = [];
+      const DEFAULT_PAST_PAPERS = [
+        {
+          id: "paper-eng-9-drive",
+          title: "ஆங்கிலம் கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "english_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1PD9eBO7cWMpVuEeE03HRXXjPSDHHJ3NF",
+        },
+        {
+          id: "paper-chr-9-drive",
+          title: "கிறிஸ்தவ சமயம் கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "christianity_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1wyZjWtWuCwgankDigShlHqmPQ5USBMds",
+        },
+        {
+          id: "paper-civ-9-drive",
+          title: "குடியியல் கல்வி கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "civics_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1FKk1_ia3ZgziLwDr5dWpi3Uht2aZaSN7",
+        },
+        {
+          id: "paper-geo-9-drive",
+          title: "புவியியல் கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "geo_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1MIN1lT_RnhpCrSJ5AVIgW9SXF0HlZppa",
+        },
+        {
+          id: "paper-his-9-drive",
+          title: "வரலாறு கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "history_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1jI_PJvB3fUnkRzew3I30h75xFAUIEV0U",
+        },
+        {
+          id: "paper-ict-9-drive",
+          title: "தகவல் தொழில்நுட்பம் (ICT) கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "ict_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1iQf1DZeK3Lw-x3xU8AcVWr8F1Rn3c_Sz",
+        },
+        {
+          id: "paper-isl-9-drive",
+          title: "இஸ்லாம் கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "islam_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/18zm82EDKOMdGNpn69V3LJ8a6Nnx30-Ra",
+        },
+        {
+          id: "paper-maths-9-drive",
+          title: "கணிதம் கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "maths_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1Ine-yDswp4znaIx9GMYiMe6QLcp8RvrT",
+        },
+        {
+          id: "paper-pts-9-drive",
+          title: "நடைமுறைத் தொழினுட்பத் தேர்ச்சி (PTS) கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "pts_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1qNa9oxl8sIgZUyS-EuYyBdTGsK51bpc1",
+        },
+        {
+          id: "paper-rel-9-drive",
+          title: "சைவ சமயம் கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "religion_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/14Xt3IKSdf9HoWXd6xVPZPpYn7PpX9sB4",
+        },
+        {
+          id: "paper-sci-9-drive",
+          title: "விஞ்ஞானம் கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "science_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1IoTYtYUitpAiEerkT-LhcSBWiHC1NIZU",
+        },
+        {
+          id: "paper-tamil-9-drive",
+          title: "தமிழ் மொழியும் இலக்கியமும் கடந்த கால வினாத்தாள்கள் - தரம் 9",
+          grade: "Grade 9",
+          subject: "tamil_subject",
+          pdfUrl: "https://drive.google.com/drive/folders/1dhvldq-OSolrua-2_42jjUcjn8ukJNh8",
+        },
+      ];
 
       const DEFAULT_VIDEOS = [];
 
@@ -703,6 +788,7 @@
         pts_subject: "Practical Tech (PTS)",
         civics_subject: "Civics",
         religion_subject: "Religion (Shaivam)",
+        islam_subject: "Islam",
         sinhalam_subject: "Sinhala",
         english_subject: "English",
         health_subject: "Health Science",
@@ -737,6 +823,7 @@
         pts_subject: "நடைமுறைத் தொழினுட்பத் தேர்ச்சி (PTS)",
         civics_subject: "குடியியல் கல்வி",
         religion_subject: "சைவ சமயம்",
+        islam_subject: "இஸ்லாம்",
         sinhalam_subject: "சிங்களம்",
         english_subject: "ஆங்கிலம்",
         health_subject: "சுகாதாரமும் உடற்கல்வியும்",
@@ -893,6 +980,16 @@
             "சைவ சமயம்",
             "சமயம்",
             "religion_subject",
+          ],
+        },
+        {
+          key: "islam_subject",
+          en: "Islam",
+          ta: "இஸ்லாம்",
+          matches: [
+            "islam",
+            "இஸ்லாம்",
+            "islam_subject",
           ],
         },
         {
